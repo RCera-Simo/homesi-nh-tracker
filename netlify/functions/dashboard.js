@@ -21,14 +21,12 @@ const { syncStageEvents } = require("./_lib/stagesync");
 const { connectBlobs } = require("./_lib/blobs");
 const { isAdmin, adminDenied } = require("./_lib/admin");
 
-exports.handler = async (event) => {
-  connectBlobs(event);
-  if (!isAdmin(event)) return adminDenied();
-  if (!process.env.MONDAY_API_TOKEN) {
-    return { statusCode: 500, body: JSON.stringify({ error: "MONDAY_API_TOKEN not configured" }) };
-  }
-
-  try {
+// buildDashboard() does the reading AND the saving (links, stage events,
+// follow-up resolution, ready-since dates). It runs in two places (2026-11-11):
+//   - here, when the admin opens Dashboard / See Pipeline (returns the data);
+//   - sync.mjs, a scheduled job every hour, so the saved data stays current for
+//     recruiters even when nobody opens the admin view (data is not returned).
+async function buildDashboard() {
     const links = await getLinkMap();
     // Stage durations (Supreme HR / Equipment / Welcome / Activation) come from
     // monday's activity log, synced here (single writer) at most every 15 min.
@@ -182,9 +180,22 @@ exports.handler = async (event) => {
     // lives in Netlify Blobs. If its credentials are missing the page still loads,
     // but says so instead of silently showing empty history.
     if (blobsProblem()) {
-      dash.warnings = [`Saved data is unavailable (Netlify Blobs said: ${blobsProblem()}). A 401 means the NETLIFY_BLOBS_TOKEN of this site is invalid or expired: create a new Netlify personal access token, replace it under Site configuration → Environment variables, and redeploy. Follow-up history, stage durations and ready-since dates stay blank until then.`];
+      dash.warnings = [`Saved data is unavailable (Netlify Blobs said: ${blobsProblem()}). Check the function logs in Netlify. Follow-up history, stage durations and ready-since dates stay blank until then.`];
     }
 
+    return dash;
+}
+
+exports.buildDashboard = buildDashboard;
+
+exports.handler = async (event) => {
+  connectBlobs(event);
+  if (!isAdmin(event)) return adminDenied();
+  if (!process.env.MONDAY_API_TOKEN) {
+    return { statusCode: 500, body: JSON.stringify({ error: "MONDAY_API_TOKEN not configured" }) };
+  }
+  try {
+    const dash = await buildDashboard();
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
