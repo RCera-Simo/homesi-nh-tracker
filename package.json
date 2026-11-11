@@ -1,0 +1,9 @@
+{
+  "name": "homesi-nh-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HomeSí New Hire Tracker — recruiter portal + PMO dashboard backed by monday.com.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

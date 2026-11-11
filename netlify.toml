@@ -1,0 +1,14 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Optional: run the polling/notification check on a schedule instead of (or in
+# addition to) the Claude-managed scheduled task described in the README.
+# Uncomment to enable a Netlify Scheduled Function (requires a paid plan tier
+# that supports Scheduled Functions):
+#
+# [functions."notify-on-change"]
+#   schedule = "@hourly"
