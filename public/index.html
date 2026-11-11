@@ -682,7 +682,10 @@
   /* Admin gate (2026-11-11): recruiters only use "My New Hire Process". */
   .navtab.locked { opacity: .45; filter: grayscale(1); cursor: not-allowed; box-shadow: none !important; }
   .navtab.locked:hover { background: rgba(252,252,250,.08); border-color: rgba(252,252,250,.35); }
-  .adminbtn { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid rgba(252,252,250,.35); background: transparent; color: var(--sky); font: 700 12.5px inherit; font-family: inherit; cursor: pointer; }
+  .headactions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .newhirebtn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: var(--brand-red); color: var(--offwhite); font: 700 12.5px inherit; font-family: inherit; text-decoration: none; box-shadow: var(--sh-red); }
+  .newhirebtn:hover { background: var(--brand-red-dark); }
+  .adminbtn { margin-top: 0; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid rgba(252,252,250,.35); background: transparent; color: var(--sky); font: 700 12.5px inherit; font-family: inherit; cursor: pointer; }
   .adminbtn:hover { border-color: var(--offwhite); color: var(--offwhite); }
   .adminbtn.on { background: var(--offwhite); color: var(--navy-ink); border-color: var(--offwhite); }
 </style>
@@ -702,7 +705,10 @@
       <button class="navtab" id="navRecruiter">👤 My New Hire Process</button>
       <button class="navtab" id="navPipeline">🧭 See Pipeline</button>
     </div>
-    <button class="adminbtn" id="adminBtn" type="button">🔒 Admin</button>
+    <div class="headactions">
+      <a class="newhirebtn" href="https://homesi-new-hire.netlify.app/" target="_blank" rel="noopener">＋ Submit a new hire</a>
+      <button class="adminbtn" id="adminBtn" type="button">🔒 Admin</button>
+    </div>
   </header>
 
   <div id="loading" class="loading">Loading…</div>
