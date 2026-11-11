@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Hire Tracker — HomeSí Recruiter Portal</title>
+<style>
+  :root {
+    --navy:        #001A40;
+    --navy-ink:    #0B234D;
+    --coral:       #FF4040;
+    --sky:         #A6DEFF;
+    --gold:        #F5C242;
+    --offwhite:    #FCFCFA;
+    --good:        #0ca30c;
+    --good-bg:     #e7f6e7;
+    --muted:       #898781;
+    --muted-bg:    #eeece7;
+    --grid:        #e1e0d9;
+    --text-1:      #0b0b0b;
+    --text-2:      #52514e;
+    --radius:      16px;
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--offwhite); color: var(--text-1); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .page { max-width: 780px; margin: 0 auto; padding-bottom: 56px; }
+
+  header { background: var(--navy); padding: 22px 28px 26px; color: var(--offwhite); }
+  .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brandrow img { height: 30px; display: block; }
+  .brandrow .tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--sky); font-weight: 700; text-align: right; }
+  header h1 { margin: 18px 0 4px; font-size: 20px; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; }
+  header p.sub { margin: 0; color: var(--sky); font-size: 13px; }
+  .backlink { display: inline-flex; align-items: center; gap: 6px; margin: 14px 0 0; font-size: 12.5px; color: var(--sky); text-decoration: none; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; }
+  .backlink:hover { text-decoration: underline; }
+
+  .card { background: #fff; margin: -20px 20px 0; border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,26,64,0.10); padding: 22px 24px; position: relative; z-index: 2; }
+  .trackrow { border-bottom: 1px solid var(--grid); padding-bottom: 16px; margin-bottom: 16px; }
+  .trackrow .id { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin: 0 0 2px; }
+  .trackrow .id b { color: var(--navy); font-size: 13px; letter-spacing: .04em; }
+  .trackrow .name { font-size: 19px; font-weight: 800; margin: 0; }
+  .trackrow .meta { font-size: 13px; color: var(--text-2); margin: 2px 0 0; }
+
+  .statusnow { display: flex; align-items: center; gap: 12px; }
+  .statusnow .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 5px rgba(245,194,66,.30); flex: none; }
+  .statusnow .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin: 0 0 2px; }
+  .statusnow .headline { font-size: 16px; font-weight: 800; margin: 0; color: var(--navy-ink); }
+
+  /* ---- Picker screen ---- */
+  .pickerbox { margin: -20px 20px 0; background: #fff; border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,26,64,0.10); padding: 24px; position: relative; z-index: 2; }
+  .pickerbox p.hint { margin: 0 0 14px; font-size: 13.5px; color: var(--text-2); }
+  .searchbox { width: 100%; padding: 12px 14px; border: 1.5px solid var(--grid); border-radius: 10px; font-size: 15px; font-family: inherit; }
+  .searchbox:focus { outline: none; border-color: var(--navy); }
+  .namelist { list-style: none; margin: 14px 0 0; padding: 0; max-height: 360px; overflow-y: auto; }
+  .namelist li { border-bottom: 1px solid var(--grid); }
+  .namelist li:last-child { border-bottom: none; }
+  .namelist button { width: 100%; text-align: left; background: none; border: none; padding: 12px 6px; font-size: 14.5px; font-weight: 600; color: var(--text-1); cursor: pointer; font-family: inherit; }
+  .namelist button:hover { color: var(--navy); }
+  .emptynote { margin: 14px 2px 0; font-size: 13px; color: var(--muted); }
+
+  /* ---- List screen (candidate cards) ---- */
+  .candlist { margin: 24px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+  .candcard { background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; border: 1.5px solid transparent; text-align: left; font-family: inherit; width: 100%; }
+  .candcard:hover { border-color: var(--sky); }
+  .candcard .cname { font-size: 15px; font-weight: 800; margin: 0 0 3px; }
+  .candcard .cmeta { font-size: 12.5px; color: var(--text-2); margin: 0; }
+  .candcard .chev { color: var(--muted); font-size: 18px; flex: none; }
+
+  /* ---- Stepper / timeline / checklist (shared with detail screen) ---- */
+  .view-toggle { margin: 24px 20px 0; display: flex; gap: 8px; }
+  .toggle-btn { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--grid); background: #fff; color: var(--text-2); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .toggle-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  .hstepper { margin: 18px 20px 0; background: #fff; border-radius: var(--radius); padding: 26px 18px 18px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); }
+  .hnode-row { display: flex; justify-content: space-between; position: relative; }
+  .hnode-row:before { content: ""; position: absolute; top: 17px; left: 5%; right: 5%; height: 2px; background: var(--grid); z-index: 0; }
+  .hnode { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; flex: 1; gap: 8px; }
+  .hcircle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px solid var(--muted-bg); background: #fff; color: var(--muted); }
+  .hnode.done .hcircle { border-color: var(--good); background: var(--good-bg); color: var(--good); animation: pulseGreenGlow 1.8s ease-in-out infinite; }
+  .hnode.current .hcircle { border-color: var(--gold); background: #fff8e8; color: #b5810a; box-shadow: 0 0 0 5px rgba(245,194,66,.25); }
+  .hlabel { font-size: 10.5px; font-weight: 700; text-align: center; color: var(--text-2); line-height: 1.3; }
+  .hnode.current .hlabel { color: var(--navy-ink); }
+  .hnode.done .hlabel { color: var(--text-1); }
+  .hdate { font-size: 9.5px; color: var(--text-2); margin-top: -2px; }
+  .hnode.upcoming { opacity: .55; }
+  .roletag { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--muted-bg); color: var(--text-2); vertical-align: middle; }
+  .rolebadge { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--sky); color: var(--navy-ink); vertical-align: middle; }
+
+  @keyframes pulseGreenGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(12,163,12,.55); }
+    50% { box-shadow: 0 0 0 7px rgba(12,163,12,0); }
+  }
+  @keyframes pulseGreenLine {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hnode.done .hcircle, .step.done .node, .step.done .line { animation: none; }
+  }
+
+  .section { margin: 24px 20px 0; background: #fff; border-radius: var(--radius); padding: 18px 20px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); }
+  .section h2 { margin: 0 0 4px; font-size: 14px; }
+  .section p.note { margin: 0 0 12px; font-size: 12.5px; color: var(--text-2); }
+  .scan { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--grid); font-size: 13px; }
+  .scan:first-child { border-top: none; }
+  .scanname { display: flex; flex-direction: column; gap: 3px; }
+  .needsnote { font-size: 10px; font-weight: 700; color: #9c6b00; background: #fff3d9; padding: 2px 8px; border-radius: 999px; width: fit-content; letter-spacing: .01em; }
+  .pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; flex: none; }
+  .pill.ok { background: var(--good-bg); color: var(--good); }
+  .pill.wip { background: #fff3d9; color: #a06b00; }
+  .pill.pending { background: var(--muted-bg); color: var(--text-2); }
+  .pill.na { background: var(--muted-bg); color: var(--text-2); }
+
+  /* ---- Vertical timeline (full detail view) ---- */
+  .timeline { margin: 18px 20px 0; }
+  .step { display: flex; gap: 14px; }
+  .rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+  .node { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; background: var(--muted-bg); color: var(--muted); flex: none; }
+  .step.done .node { background: var(--good-bg); color: var(--good); animation: pulseGreenGlow 1.8s ease-in-out infinite; }
+  .step.current .node { background: #fff8e8; color: #b5810a; box-shadow: 0 0 0 4px rgba(245,194,66,.25); }
+  .step.stuck .node { background: #ffe1e1; color: #9c1f1f; animation: pulseStuck 1.3s ease-in-out infinite; }
+  .line { width: 2px; flex: 1; background: var(--grid); margin: 4px 0; min-height: 22px; }
+  .step.done .line { background: var(--good); animation: pulseGreenLine 1.8s ease-in-out infinite; }
+  .step.upcoming { opacity: .55; }
+  .content { padding-bottom: 26px; flex: 1; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  /* Stage names (2026-10-21, per Ricardo): much larger so each node reads at a glance. */
+  .top h3 { margin: 0 0 4px; font-size: 21px; font-weight: 800; line-height: 1.2; color: var(--navy-ink); letter-spacing: -.005em; }
+  .when { font-size: 11.5px; color: var(--text-2); white-space: nowrap; text-align: right; }
+  .when.dur { font-weight: 700; color: var(--navy-ink); }
+  .desc { margin: 0 0 8px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+  .owner { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--sky); color: var(--navy-ink); }
+  .owner.supreme { background: #ffe1e1; color: #9c1f1f; }
+  .owner.system { background: var(--muted-bg); color: var(--text-2); }
+  details.subscans { margin-top: 12px; }
+  /* "View Details" (2026-10-21, per Ricardo): an eye-catching pill whose glow and
+     arrow pulse on and off, so people notice there are sub-steps to open. It
+     calms down once opened and for anyone who prefers reduced motion. */
+  details.subscans summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #fff; background: var(--navy); padding: 8px 16px 8px 13px; border-radius: 999px; user-select: none; animation: detailsGlow 2.6s ease-in-out infinite; }
+  details.subscans summary:hover { background: var(--navy-ink); }
+  details.subscans summary::-webkit-details-marker { display: none; }
+  details.subscans summary::before { content: "\25B8"; display: inline-block; color: var(--gold); font-size: 15px; line-height: 1; animation: arrowBounce 2.6s ease-in-out infinite; }
+  details.subscans summary .subcount { font-weight: 600; font-size: 11px; color: var(--sky); }
+  details.subscans[open] summary { animation: none; background: var(--muted-bg); color: var(--navy-ink); }
+  details.subscans[open] summary .subcount { color: var(--text-2); }
+  details.subscans[open] summary::before { content: "\25BE"; color: var(--navy-ink); animation: none; }
+  @keyframes detailsGlow {
+    0%, 55%, 100% { box-shadow: 0 0 0 0 rgba(255,64,64,0); }
+    68% { box-shadow: 0 0 0 0 rgba(255,64,64,.65); }
+    92% { box-shadow: 0 0 0 11px rgba(255,64,64,0); }
+  }
+  @keyframes arrowBounce {
+    0%, 55%, 100% { transform: translateX(0); }
+    62% { transform: translateX(5px); }
+    69% { transform: translateX(0); }
+    76% { transform: translateX(5px); }
+    83% { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    details.subscans summary, details.subscans summary::before { animation: none; }
+  }
+  .scanlist { margin-top: 8px; background: var(--offwhite); border-radius: 10px; padding: 4px 12px; }
+  .parallel-note { margin: 4px 0 14px 48px; font-size: 12.5px; color: var(--text-2); }
+
+  .delivered { margin: 24px 20px 0; background: var(--navy); border-radius: var(--radius); padding: 26px 20px; text-align: center; color: #fff; }
+  .delivered h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: .02em; }
+  .delivered h2 b { color: var(--gold); }
+  .delivered p { margin: 0; font-size: 12.5px; color: var(--sky); }
+
+  .legend { margin: 18px 20px 0; display: flex; gap: 16px; font-size: 12px; color: var(--text-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend .dot2 { width: 9px; height: 9px; border-radius: 50%; }
+  .legend .dot2.done { background: var(--good); }
+  .legend .dot2.wip { background: var(--gold); }
+  .legend .dot2.pending { background: var(--muted); }
+
+  .footnote { margin: 22px 20px 0; font-size: 11px; color: var(--muted); line-height: 1.6; border-top: 1px solid var(--grid); padding-top: 14px; }
+  .loading, .errorbox { margin: 40px 20px; text-align: center; color: var(--text-2); font-size: 14px; }
+  .errorbox { color: #9c1f1f; }
+
+  /* ---- Nav tabs (Dashboard / By Recruiter) ---- */
+  .navtabs { margin: 14px 20px 0; display: flex; gap: 8px; }
+  .navtab { flex: 1; text-align: center; padding: 10px 8px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: var(--sky); font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; text-decoration: none; }
+  .navtab.active { background: var(--offwhite); border-color: var(--offwhite); color: var(--navy-ink); }
+
+  /* ---- Dashboard screen ---- */
+  .stattiles { margin: -20px 20px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; z-index: 2; }
+  .stattile { background: #fff; border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,26,64,0.10); padding: 16px 14px; text-align: center; }
+  .stattile .num { font-size: 26px; font-weight: 800; color: var(--navy-ink); line-height: 1.1; }
+  .stattile.ready .num { color: var(--good); }
+  .stattile .lbl { font-size: 11px; color: var(--text-2); margin-top: 4px; font-weight: 600; }
+  .stattile .breakdown { margin-top: 6px; font-size: 10px; color: var(--text-2); line-height: 1.45; }
+  .stattile.clickable { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+  .stattile.clickable:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,26,64,0.16); }
+  @media (max-width: 520px) { .stattiles { grid-template-columns: repeat(1, 1fr); } }
+
+  .metricsgrid { margin: 20px 20px 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .metriccard { background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 14px 16px; }
+  .metriccard .mnum { font-size: 20px; font-weight: 800; color: var(--navy-ink); }
+  .metriccard .mnum .unit { font-size: 12px; font-weight: 700; color: var(--text-2); margin-left: 3px; }
+  .metriccard .mlbl { font-size: 11.5px; color: var(--text-2); margin-top: 3px; line-height: 1.3; }
+  .metriccard .msample { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 520px) { .metricsgrid { grid-template-columns: 1fr; } }
+
+  .breakdownrow { margin: 20px 20px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .breakdowncol { flex: 1; min-width: 200px; background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 14px 16px; }
+  .breakdowncol h3 { margin: 0 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); }
+  .chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--muted-bg); color: var(--text-2); }
+  .chip.clickable { cursor: pointer; transition: background .12s ease, color .12s ease; }
+  .chip.clickable:hover { background: var(--sky); color: var(--navy-ink); }
+
+  /* ---- Floating popover (stat tiles + By Role/By Branch chips) ---- */
+  .popover-overlay { position: fixed; inset: 0; background: rgba(11,35,77,0.35); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .popover-card { background: #fff; border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,26,64,0.30); max-width: 360px; width: 100%; max-height: 70vh; display: flex; flex-direction: column; }
+  .popover-card .phead { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px 10px; border-bottom: 1px solid var(--grid); flex: none; }
+  .popover-card .phead h3 { margin: 0; font-size: 14.5px; color: var(--navy-ink); }
+  .popover-card .pclose { background: none; border: none; font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; padding: 2px 6px; font-family: inherit; }
+  .popover-card .pclose:hover { color: var(--text-1); }
+  .popover-card .pbody { padding: 6px 18px 16px; overflow-y: auto; }
+  .popover-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px dashed var(--grid); font-size: 13px; gap: 10px; }
+  .popover-item:first-child { border-top: none; }
+  .popover-item b { font-weight: 800; }
+  .popover-item span { color: var(--text-2); font-size: 12px; text-align: right; white-space: nowrap; }
+  .popover-item.readyitem { flex-wrap: wrap; }
+  .popover-item.readyitem span { white-space: normal; }
+  .popover-item .rmeta { flex: 0 0 100%; font-size: 11.5px; color: var(--text-2); }
+  .popover-item .rcontact { flex: 0 0 100%; font-size: 12px; }
+  .popover-item .rcontact a { color: inherit; font-weight: 700; text-decoration: none; margin-right: 12px; }
+  .popover-item .rcontact a:hover { text-decoration: underline; }
+  .popover-contactbtn { font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--good); background: #fff; color: var(--good); cursor: pointer; font-family: inherit; margin-bottom: 6px; }
+  .popover-contactbtn:disabled { opacity: .6; cursor: default; }
+  .popover-item.overdue { background: #fdeceb; border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+  .popover-item.overdue span { color: #c62828; font-weight: 700; }
+  .popover-note { font-size: 11.5px; color: var(--muted); padding: 10px 0 2px; border-top: 1px dashed var(--grid); margin-top: 6px; }
+  .stattile .overduenote { font-size: 11px; font-weight: 800; color: #c62828; margin-top: 4px; }
+  .popover-empty { font-size: 13px; color: var(--muted); padding: 10px 0; }
+
+  .dashlist { margin: 22px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+  .dashcard { background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 14px 16px; }
+  .dashcard .dtop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .dashcard .dname { font-size: 15px; font-weight: 800; margin: 0 0 2px; }
+  .dashcard .dmeta { font-size: 12px; color: var(--text-2); margin: 0; }
+  .dashcard .dstart { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .dashcard .chev { color: var(--muted); font-size: 18px; flex: none; }
+  .readytag { display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: var(--good); color: #fff; vertical-align: middle; }
+
+  .minitimeline { display: flex; align-items: center; margin-top: 10px; }
+  .mnode-wrap { display: flex; align-items: center; flex: 1; }
+  .mnode-wrap:last-child { flex: none; }
+  .mdot { width: 15px; height: 15px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 8px; background: var(--muted-bg); color: var(--muted); border: 2px solid var(--muted-bg); }
+  .mdot.done { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+  .mdot.current { background: #fff8e8; border-color: var(--gold); color: #b5810a; }
+  .mdot.stuck { background: #ffe1e1; border-color: var(--coral); color: #9c1f1f; animation: pulseStuck 1.3s ease-in-out infinite; }
+  .mline { height: 2px; flex: 1; background: var(--grid); }
+  .mline.done { background: var(--good); }
+  @keyframes pulseStuck {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,64,64,.5); }
+    50% { box-shadow: 0 0 0 6px rgba(255,64,64,0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mdot.stuck { animation: none; } }
+
+  .stuckrow { margin-top: 10px; background: #fff5f5; border: 1px solid #ffd6d6; border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .stuckrow .stucktext { font-size: 12px; color: #9c1f1f; font-weight: 700; }
+  .stuckrow .stucktext span.sub { display: block; font-weight: 500; color: #7a3a3a; font-size: 11px; margin-top: 1px; }
+  .followupbtn { flex: none; font-size: 11.5px; font-weight: 700; padding: 8px 12px; border-radius: 8px; border: none; background: var(--coral); color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .followupbtn:hover { background: #e02e2e; }
+  .followupbtn:disabled { opacity: .6; cursor: default; }
+  .stuckrow.ok { background: var(--good-bg); border-color: #bfe6bf; }
+  .stuckrow.ok .stucktext { color: #0a6b0a; }
+  .announcebtn { flex: none; font-size: 11.5px; font-weight: 700; padding: 8px 12px; border-radius: 8px; border: none; background: var(--good); color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .announcebtn:hover { filter: brightness(.92); }
+  .announcebtn:disabled { opacity: .6; cursor: default; }
+  .announcebtn.done { background: #fff; color: var(--good); border: 1.5px solid var(--good); }
+  .awaitingpill { flex: none; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: var(--muted-bg); color: var(--text-2); }
+
+  /* ---- Toast (honest confirmation after opening the OWA compose draft) ---- */
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(10px); max-width: 92vw; width: 420px; background: var(--navy); color: var(--offwhite); border-radius: 12px; padding: 14px 18px; font-size: 13px; line-height: 1.5; box-shadow: 0 12px 36px rgba(0,26,64,0.35); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast b { color: var(--sky); }
+
+  /* ---- Clickable rows in popovers (2026-10-21) ---- */
+  .popover-item.linkable { cursor: pointer; border-radius: 8px; padding-left: 6px; padding-right: 6px; margin: 0 -6px; }
+  .popover-item.linkable:hover { background: #eef7ff; }
+  .popover-item.linkable b:after { content: " \203A"; color: var(--muted); }
+  .plink { cursor: pointer; text-decoration: underline; text-decoration-color: var(--sky); text-underline-offset: 3px; }
+  .plink:hover { color: var(--navy); text-decoration-color: var(--navy); }
+
+  /* ---- Recruitment section (moved here from the KYN dashboard, 2026-10-21) ---- */
+  .sectionhead { margin: 30px 20px 0; }
+  .sectionhead h2 { margin: 0; font-size: 16px; color: var(--navy-ink); text-transform: uppercase; letter-spacing: .04em; }
+  .sectionhead p { margin: 4px 0 0; font-size: 12px; color: var(--text-2); line-height: 1.5; }
+  .recgrid { margin: 14px 20px 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .reccard { background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 16px 18px; }
+  .reccard h3 { margin: 0 0 3px; font-size: 14px; color: var(--navy-ink); }
+  .reccard p.sub { margin: 0 0 12px; font-size: 11.5px; color: var(--text-2); line-height: 1.45; }
+  .ttfbox { background: var(--navy); border-radius: 12px; padding: 18px; color: #fff; text-align: center; }
+  .ttfbox .big { font-size: 40px; font-weight: 800; line-height: 1.1; }
+  .ttfbox .cap { font-size: 12px; color: var(--sky); margin-top: 2px; }
+  .ttfstats { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--text-2); }
+  .ttfstats b { color: var(--navy-ink); }
+  .seg { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .segbtn { font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; border: 1.5px solid var(--grid); background: #fff; color: var(--text-2); cursor: pointer; }
+  .segbtn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .segbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .yearsel { font-family: inherit; font-size: 12px; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--grid); background: #fff; color: var(--navy-ink); }
+  .legendrow { display: flex; gap: 14px; font-size: 11.5px; color: var(--text-2); margin-bottom: 8px; }
+  .legendrow .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .fchart { display: flex; align-items: flex-end; gap: 6px; height: 170px; padding-top: 18px; border-bottom: 1.5px solid var(--grid); }
+  .fgroup { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .fbars { display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; flex: 1; }
+  .fbar { border: none; padding: 0; width: 42%; max-width: 22px; border-radius: 4px 4px 0 0; cursor: pointer; position: relative; min-height: 0; font-family: inherit; }
+  .fbar.total { background: var(--sky); }
+  .fbar.done { background: var(--navy); }
+  .fbar:hover { filter: brightness(.9); }
+  .fbar .v { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; color: var(--navy-ink); padding-bottom: 2px; }
+  .flabels { display: flex; gap: 6px; margin-top: 5px; }
+  .flabels span { flex: 1; min-width: 0; text-align: center; font-size: 10.5px; color: var(--text-2); }
+  .flabels span.cur { font-weight: 800; color: var(--navy-ink); }
+  .recnote { margin-top: 10px; font-size: 11.5px; color: var(--text-2); line-height: 1.5; background: var(--offwhite); border-radius: 10px; padding: 9px 12px; }
+  .lbrow { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; padding: 5px 0; cursor: pointer; font-family: inherit; text-align: left; }
+  .lbrow:hover .lbname { color: var(--navy); text-decoration: underline; }
+  .lbname { flex: 0 0 38%; font-size: 12.5px; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lbtrack { flex: 1; background: var(--muted-bg); border-radius: 6px; height: 18px; overflow: hidden; }
+  .lbfill { height: 100%; background: var(--navy); border-radius: 6px; }
+  .lbnum { flex: 0 0 24px; font-size: 12.5px; font-weight: 800; color: var(--navy-ink); text-align: right; }
+
+  /* ---- See Pipeline screen ---- */
+  .pipefilter { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--grid); padding-top: 14px; }
+  .pipefilter label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); font-weight: 700; }
+  .stageboard { margin: 18px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+  .stagerow { background: #fff; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,26,64,0.06); padding: 14px 16px; border-left: 5px solid var(--grid); }
+  .stagerow.has { border-left-color: var(--gold); }
+  .stagerow.hasstuck { border-left-color: var(--coral); }
+  .stagehead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .stagehead h3 { margin: 0; font-size: 15px; color: var(--navy-ink); }
+  .stagehead .sowner { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+  .stagecount { flex: none; min-width: 34px; height: 34px; border-radius: 17px; padding: 0 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; background: var(--muted-bg); color: var(--text-2); }
+  .stagerow.has .stagecount { background: #fff3d9; color: #a06b00; }
+  .stagerow.hasstuck .stagecount { background: #ffe1e1; color: #9c1f1f; }
+  .stagebar { height: 5px; border-radius: 3px; background: var(--muted-bg); margin: 10px 0 0; overflow: hidden; }
+  .stagebar i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+  .stagerow.hasstuck .stagebar i { background: var(--coral); }
+  .stagewho { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .pchip { font-family: inherit; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1.5px solid #f3dca0; background: #fff8e8; color: #7a5200; cursor: pointer; }
+  .pchip:hover { background: #ffefc2; }
+  .pchip.stuck { border-color: #ffc2c2; background: #fff0f0; color: #9c1f1f; }
+  .pchip .pd { font-weight: 600; opacity: .8; margin-left: 4px; }
+  .stagenone { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .stagepar { font-size: 10.5px; font-weight: 700; color: var(--text-2); background: var(--muted-bg); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+
+  /* =====================================================================
+     HOMESÍ brand theme (v6, 2026-10-30) — palette, type and "floating" motion
+     taken from the HOMESÍ Onboarding deck / design system:
+       Display  Hanken Grotesk 800-900   (titles, big numbers)
+       Heading  Barlow 700               (buttons, tabs, chips, labels)
+       Body     Inter                    (text)      Accent  Kalam (hand note)
+       Motion   hsRise (cards enter), hsFloat (slow idle float), hover lift,
+                press shrink 0.97, soft red glow on primary actions.
+     Pure overrides: nothing above this block was changed.
+     ===================================================================== */
+  /* Fonts are self-hosted (public/fonts/*.woff2, SIL Open Font License) — no external request. */
+  @font-face { font-family: 'Hanken Grotesk'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/hanken-grotesk-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Hanken Grotesk'; font-style: normal; font-weight: 900; font-display: swap; src: url('/fonts/hanken-grotesk-latin-900-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/barlow-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Barlow'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/barlow-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/inter-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/inter-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/inter-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/inter-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Kalam'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/kalam-latin-400-normal.woff2') format('woff2'); }
+  :root {
+    --font-display: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-heading: 'Barlow', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    --font-hand: 'Kalam', 'Comic Sans MS', cursive;
+    --brand-red: #FF4040;
+    --brand-red-dark: #ED2E2E;
+    --brand-amber: #FFC84F;
+    --ease-out: cubic-bezier(.16, .8, .24, 1);
+    --sh-sm: 0 2px 8px rgba(0,26,64,.08);
+    --sh-md: 0 8px 24px rgba(0,26,64,.12);
+    --sh-lg: 0 18px 48px rgba(0,26,64,.16);
+    --sh-red: 0 8px 20px rgba(255,64,64,.30);
+    --focus-ring: 0 0 0 3px rgba(255,64,64,.35);
+    --radius: 20px;
+    font-family: var(--font-body);
+  }
+  body { font-family: var(--font-body); }
+  input, select, textarea, button { font-family: inherit; }
+
+  /* ---- Type ---- */
+  header h1, .section h2, .sectionhead h2, .reccard h3, .breakdowncol h3, .popover-card .phead h3,
+  .top h3, .delivered h2 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.015em; }
+  header h1 { font-weight: 900; letter-spacing: -0.03em; }
+  .stattile .num, .metriccard .mnum, .ttfbox .big, .stagecount, .candcard .cname, .dashcard .dname,
+  .trackrow .name, .statusnow .headline { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; }
+  .stattile .lbl, .metriccard .mlbl, .hlabel, .brandrow .tag, .legend span, .readytag, .rolebadge, .roletag,
+  .pill, .awaitingpill, .stagepar { font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.04em; }
+  header p.sub { font-family: var(--font-hand); font-size: 17px; line-height: 1.3; letter-spacing: 0; }
+
+  /* ---- Buttons: Barlow Bold, pill-shaped ---- */
+  .navtab, .toggle-btn, .segbtn, .followupbtn, .announcebtn, .popover-contactbtn, .pchip, .backlink,
+  .chip, details.subscans summary, .yearsel, .stagerow button {
+    font-family: var(--font-heading); font-weight: 700; letter-spacing: 0.02em;
+  }
+  .navtab, .toggle-btn, .followupbtn, .announcebtn, .popover-contactbtn, .segbtn, .pchip { border-radius: 999px; }
+  .navtab { font-size: 13.5px; padding: 11px 10px; }
+  .toggle-btn { font-size: 14px; }
+  .followupbtn, .announcebtn, .popover-contactbtn { font-size: 13px; padding: 9px 16px; }
+  .followupbtn { background: var(--brand-red); }
+  .followupbtn:hover { background: var(--brand-red-dark); }
+  .card, .candcard, .dashcard, .metriccard, .stattile, .reccard, .popover-card { border-radius: var(--radius); }
+  .popover-card { box-shadow: var(--sh-lg); }
+
+  /* ---- Floating interactivity ---- */
+  @keyframes hsRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @keyframes hsPop  { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes hsFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* every interactive element lifts on hover (translate/scale props, so they never fight the transform animations) */
+  .navtab, .toggle-btn, .segbtn, .followupbtn, .announcebtn, .popover-contactbtn, .pchip, .backlink,
+  .chip.clickable, .candcard, .dashcard, .stattile.clickable, .popover-item.linkable, .namelist button,
+  details.subscans summary, .fbar, .lbrow, .toast {
+    transition: translate .28s var(--ease-out), scale .16s var(--ease-out), box-shadow .28s var(--ease-out),
+                background-color .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .navtab:hover, .toggle-btn:hover, .segbtn:hover, .followupbtn:hover:not(:disabled), .announcebtn:hover:not(:disabled),
+  .popover-contactbtn:hover:not(:disabled), .pchip:hover, .chip.clickable:hover, details.subscans summary:hover {
+    translate: 0 -3px; box-shadow: var(--sh-md);
+  }
+  .followupbtn:hover:not(:disabled), .announcebtn:hover:not(:disabled), .navtab.active:hover { box-shadow: var(--sh-red); }
+  .candcard:hover, .dashcard:hover, .stattile.clickable:hover { translate: 0 -5px; box-shadow: var(--sh-lg); transform: none; }
+  .backlink:hover { translate: -3px 0; box-shadow: none; }
+  .popover-item.linkable:hover { translate: 4px 0; }
+  .navtab:active, .toggle-btn:active, .segbtn:active, .followupbtn:active:not(:disabled), .announcebtn:active:not(:disabled),
+  .popover-contactbtn:active:not(:disabled), .pchip:active, .candcard:active, .dashcard:active,
+  .stattile.clickable:active, details.subscans summary:active { scale: .97; translate: 0 0; }
+  .navtab:focus-visible, .toggle-btn:focus-visible, .segbtn:focus-visible, .followupbtn:focus-visible,
+  .announcebtn:focus-visible, .popover-contactbtn:focus-visible, .pchip:focus-visible, .candcard:focus-visible,
+  .dashcard:focus-visible, .stattile.clickable:focus-visible, .searchbox:focus-visible, .yearsel:focus-visible,
+  details.subscans summary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .searchbox:focus { border-color: var(--brand-red); box-shadow: var(--focus-ring); outline: none; }
+  .navtab.active { box-shadow: var(--sh-sm); }
+  .toggle-btn.active, .segbtn.active { box-shadow: var(--sh-sm); }
+
+  /* slow idle float on the calls to action (the deck's hsFloat, scaled down for a data UI) */
+  .stattile.ready.clickable { animation: hsFloat 5s ease-in-out infinite; }
+  .announcebtn:not(:disabled):not(.done) { animation: hsFloat 5.5s ease-in-out .4s infinite; }
+  details.subscans:not([open]) summary { animation: detailsGlow 2.6s ease-in-out infinite, hsFloat 5s ease-in-out infinite; }
+
+  /* a floating target holds still while the pointer is on it, so clicks never land on a moving button */
+  .stattile.ready.clickable:hover, .announcebtn:hover, details.subscans summary:hover { animation-play-state: paused, paused; }
+
+  /* cards rise in, one after another */
+  .stattile, .metriccard, .reccard, .card, .section { animation: hsRise .6s var(--ease-out) both; }
+  .stattile:nth-child(2), .metriccard:nth-child(2), .reccard:nth-child(2) { animation-delay: .07s; }
+  .stattile:nth-child(3), .metriccard:nth-child(3), .reccard:nth-child(3) { animation-delay: .14s; }
+  .metriccard:nth-child(4) { animation-delay: .21s; }
+  .stattile.ready.clickable { animation: hsRise .6s var(--ease-out) .07s both, hsFloat 5s ease-in-out .7s infinite; }
+  .popover-card { animation: hsPop .35s var(--ease-out) both; }
+  .toast { font-family: var(--font-body); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stattile, .metriccard, .reccard, .card, .section, .popover-card, .stattile.ready.clickable,
+    .announcebtn, details.subscans summary { animation: none !important; }
+    .navtab, .toggle-btn, .segbtn, .followupbtn, .announcebtn, .candcard, .dashcard, .stattile.clickable { transition: none; }
+    .candcard:hover, .dashcard:hover, .stattile.clickable:hover, .navtab:hover, .toggle-btn:hover, .followupbtn:hover,
+    .announcebtn:hover { translate: none; }
+  }
+  /* =====================================================================
+     v6.1 — full brand pass (HOMESÍ onboarding deck): colour blocks, amber accent,
+     big display type, rotated stamps, stronger lift. Still pure overrides.
+     Palette: Warm Embrace red #FF4040 · Enriching Skies navy #001A40 ·
+              Light Sky #A6DEFF · Latin Mornings amber #FFC84F · New Day cream #FCFCFA
+     ===================================================================== */
+  :root {
+    /* re-token the legacy colours so every old rule picks up the brand palette */
+    --gold: #FFC84F;
+    --good: #001A40;                 /* "done" reads navy (the deck has no green) */
+    --good-bg: rgba(166,222,255,.55);
+    --muted-bg: #ECEEF3;
+    --grid: #DDE3EE;
+    --text-2: #4B5468;
+    --radius: 24px;
+    --lift-sm: -4px; --lift-md: -6px; --lift-lg: -9px;
+  }
+  @keyframes hsFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes hsHalo  { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,200,79,.65); } 50% { box-shadow: 0 0 0 10px rgba(255,200,79,0); } }
+  @keyframes hsHaloSky { 0%, 100% { box-shadow: 0 0 0 0 rgba(166,222,255,.9); } 50% { box-shadow: 0 0 0 8px rgba(166,222,255,0); } }
+  @keyframes hsHaloRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,64,64,.55); } 50% { box-shadow: 0 0 0 9px rgba(255,64,64,0); } }
+
+  /* ---- Header: navy block, rounded foot, floating amber stamp ---- */
+  header { position: relative; overflow: hidden; padding: 26px 32px 44px; border-radius: 0 0 40px 40px; }
+  header > * { position: relative; z-index: 1; }
+  header::after { content: ""; position: absolute; z-index: 0; right: -38px; top: 64px; width: 140px; height: 140px; border-radius: 50%;
+    background: var(--brand-amber); opacity: .96; animation: hsFloat 6s ease-in-out infinite; }
+  header::before { content: ""; position: absolute; z-index: 0; right: 120px; top: 176px; width: 38px; height: 38px; border-radius: 50%;
+    background: var(--brand-red); animation: hsFloat 5s ease-in-out 1s infinite; }
+  .brandrow .tag { font-family: var(--font-heading); color: var(--brand-amber); letter-spacing: .24em; font-size: 11px; line-height: 1.5; }
+  header h1 { font-size: 36px; line-height: .98; letter-spacing: -.035em; text-transform: none; margin: 22px 0 8px; max-width: 78%; }
+  header p.sub { color: var(--brand-amber); font-size: 20px; max-width: 78%; }
+  .backlink { color: var(--sky); font-size: 13.5px; }
+  .backlink:hover { color: var(--brand-amber); text-decoration: none; }
+  .navtabs { margin: 20px 0 0; }
+  .navtab { background: rgba(252,252,250,.08); border: 2px solid rgba(252,252,250,.35); color: var(--offwhite); }
+  .navtab:hover { background: rgba(252,252,250,.16); border-color: var(--offwhite); }
+  .navtab.active { background: var(--brand-red); border-color: var(--brand-red); color: var(--offwhite); box-shadow: var(--sh-red); }
+  .navtab.active:hover { background: var(--brand-red-dark); border-color: var(--brand-red-dark); }
+
+  /* ---- Colour-block stat tiles (sky / amber / red, like the deck's value cards) ---- */
+  .stattiles { margin-top: -24px; gap: 14px; }
+  .stattile { border-radius: 28px; padding: 22px 16px 20px; box-shadow: var(--sh-md); background: var(--sky); color: var(--navy); }
+  .stattile .num { font-size: 54px; font-weight: 900; line-height: .95; letter-spacing: -.04em; color: var(--navy); }
+  .stattile .lbl { font-family: var(--font-heading); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--navy); font-weight: 700; margin-top: 8px; }
+  .stattile .breakdown { color: rgba(0,26,64,.78); font-size: 11px; font-weight: 500; }
+  .stattile.ready { background: var(--brand-amber); color: var(--navy); rotate: -1deg; }
+  .stattile.ready .num { color: var(--navy); }
+  .stattile.ready .overduenote { color: var(--brand-red-dark); }
+  .stattile:not(.clickable):not(.ready) { background: var(--brand-red); color: var(--offwhite); rotate: .8deg; }
+  .stattile:not(.clickable):not(.ready) .num, .stattile:not(.clickable):not(.ready) .lbl { color: var(--offwhite); }
+  .stattile.clickable:hover, .stattile.ready.clickable:hover { translate: 0 var(--lift-lg); rotate: 0deg; box-shadow: var(--sh-lg); }
+  .stattile { transition: translate .32s var(--ease-out), rotate .32s var(--ease-out), scale .16s var(--ease-out), box-shadow .32s var(--ease-out); }
+
+  /* ---- Cards: bigger radius, navy shadows, stronger lift ---- */
+  .card, .pickerbox, .hstepper, .section, .reccard, .breakdowncol, .metriccard, .candcard, .dashcard, .stagerow, .delivered { border-radius: var(--radius); }
+  .reccard, .breakdowncol, .metriccard, .candcard, .dashcard, .stagerow, .hstepper, .section { box-shadow: var(--sh-md); }
+  .card, .pickerbox { box-shadow: var(--sh-lg); }
+  .candcard:hover, .dashcard:hover { translate: 0 var(--lift-md); }
+  .candcard:hover, .dashcard:hover { border-color: var(--brand-amber); }
+  .metriccard { padding: 18px 20px; border-top: 5px solid var(--brand-amber); }
+  .metriccard:nth-child(2) { border-top-color: var(--brand-red); }
+  .metriccard:nth-child(3) { border-top-color: var(--sky); }
+  .metriccard:nth-child(4) { border-top-color: var(--navy); }
+  .metriccard .mnum { font-size: 34px; font-weight: 900; letter-spacing: -.035em; line-height: 1; }
+  .metriccard .mnum .unit { font-family: var(--font-heading); font-size: 13px; color: var(--brand-red); letter-spacing: .06em; text-transform: uppercase; }
+  .metriccard .mlbl { font-size: 12px; }
+  .metriccard:hover, .reccard:hover, .breakdowncol:hover, .stagerow:hover { translate: 0 var(--lift-sm); box-shadow: var(--sh-lg); }
+  .metriccard, .reccard, .breakdowncol, .stagerow { transition: translate .3s var(--ease-out), box-shadow .3s var(--ease-out); }
+  .candcard .cname, .dashcard .dname { font-size: 18px; font-weight: 900; }
+  .trackrow .name { font-size: 26px; font-weight: 900; letter-spacing: -.03em; }
+  .trackrow .id b { color: var(--brand-red); }
+
+  /* ---- Section titles: display type with the deck's red full stop; eyebrows in Barlow caps ---- */
+  .sectionhead h2 { font-size: 34px; font-weight: 900; letter-spacing: -.04em; text-transform: none; line-height: .95; }
+  .sectionhead h2::after { content: "."; color: var(--brand-red); }
+  .sectionhead p { font-size: 13px; }
+  .breakdowncol h3 { font-family: var(--font-heading); font-weight: 700; font-size: 13px; letter-spacing: .22em; color: var(--brand-red); }
+  .reccard h3 { font-size: 20px; font-weight: 900; letter-spacing: -.025em; }
+  .section h2 { font-size: 20px; font-weight: 900; }
+  .legend, .legendrow { font-family: var(--font-heading); font-weight: 600; letter-spacing: .04em; }
+  .legend .dot2.done { background: var(--navy); }
+  .legend .dot2.wip { background: var(--brand-amber); }
+
+  /* ---- Timelines: navy = done, amber = in progress (floats), red = stuck ---- */
+  .hcircle, .node { width: 42px; height: 42px; font-size: 17px; }
+  .hnode-row:before { top: 21px; height: 3px; background: var(--grid); border-radius: 3px; }
+  .hnode.done .hcircle, .step.done .node { background: var(--navy); border-color: var(--navy); color: var(--offwhite); animation: hsHaloSky 2.4s ease-in-out infinite; }
+  .hnode.current .hcircle, .step.current .node { background: var(--brand-amber); border-color: var(--brand-amber); color: var(--navy); box-shadow: 0 0 0 5px rgba(255,200,79,.30); animation: hsFloat 3.4s ease-in-out infinite; }
+  .step.stuck .node { background: var(--brand-red); color: var(--offwhite); animation: hsHaloRed 1.6s ease-in-out infinite; }
+  .step.done .line { background: var(--navy); animation: none; width: 3px; }
+  .line { width: 3px; border-radius: 3px; }
+  .hlabel { font-family: var(--font-heading); font-size: 11.5px; letter-spacing: .02em; }
+  .hnode.current .hlabel { color: var(--navy); font-weight: 700; }
+  .statusnow .dot { background: var(--brand-amber); box-shadow: 0 0 0 6px rgba(255,200,79,.35); animation: hsHalo 2.2s ease-in-out infinite; }
+  .statusnow .headline { font-size: 20px; font-weight: 900; }
+  .top h3 { font-size: 26px; font-weight: 900; letter-spacing: -.03em; }
+  .when.dur { font-family: var(--font-heading); font-weight: 700; color: var(--brand-red); }
+  .desc { font-size: 12.5px; color: var(--text-2); }
+
+  /* stamps: owner / role pills sit slightly rotated, like the deck's stickers */
+  .owner, .rolebadge, .roletag { rotate: -2deg; font-family: var(--font-heading); letter-spacing: .04em; transition: rotate .25s var(--ease-out), translate .25s var(--ease-out); }
+  .owner { background: var(--sky); color: var(--navy); padding: 4px 13px; }
+  .owner.supreme { background: var(--navy); color: var(--offwhite); }
+  .owner.system { background: var(--muted-bg); color: var(--text-2); rotate: 0deg; }
+  .rolebadge { background: var(--brand-amber); color: var(--navy); font-size: 12px; padding: 4px 12px; }
+  .owner:hover, .rolebadge:hover { rotate: 0deg; translate: 0 -2px; }
+  details.subscans summary { background: var(--brand-red); color: var(--offwhite); box-shadow: var(--sh-red); }
+  details.subscans summary:hover { background: var(--brand-red-dark); }
+  details.subscans summary .subcount { color: var(--offwhite); opacity: .85; }
+  details.subscans summary::before { color: var(--brand-amber); }
+  details.subscans[open] summary { background: var(--navy); color: var(--offwhite); box-shadow: var(--sh-sm); }
+  details.subscans[open] summary::before { color: var(--brand-amber); }
+  .scanlist { border-radius: 16px; background: var(--offwhite); }
+  .pill.ok { background: var(--good-bg); color: var(--navy); }
+  .pill.wip, .needsnote { background: rgba(255,200,79,.35); color: #5a3d00; }
+  .delivered { background: var(--navy); }
+  .delivered h2 { font-size: 30px; font-weight: 900; }
+  .delivered h2 b { color: var(--brand-amber); }
+  .delivered p { color: var(--sky); }
+
+  /* ---- Buttons ---- */
+  .toggle-btn { border: 2px solid var(--grid); background: #fff; color: var(--navy); }
+  .toggle-btn.active, .segbtn.active { background: var(--brand-red); border-color: var(--brand-red); color: var(--offwhite); box-shadow: var(--sh-red); }
+  .segbtn { border-width: 2px; color: var(--navy); }
+  .announcebtn { background: var(--navy); color: var(--offwhite); box-shadow: var(--sh-md); }
+  .announcebtn:hover:not(:disabled) { background: var(--navy-ink); filter: none; box-shadow: var(--sh-lg); }
+  .announcebtn.done { background: #fff; color: var(--navy); border: 2px solid var(--navy); box-shadow: none; }
+  .popover-contactbtn { border: 2px solid var(--navy); color: var(--navy); }
+  .popover-contactbtn:hover:not(:disabled) { background: var(--navy); color: var(--offwhite); }
+  .navtab:hover, .toggle-btn:hover, .segbtn:hover, .followupbtn:hover:not(:disabled), .announcebtn:hover:not(:disabled),
+  .popover-contactbtn:hover:not(:disabled), .pchip:hover, .chip.clickable:hover, details.subscans summary:hover { translate: 0 var(--lift-sm); }
+  .yearsel { border: 2px solid var(--grid); border-radius: 999px; padding: 6px 12px; }
+  .searchbox { border-radius: 999px; padding: 14px 20px; border: 2px solid var(--grid); }
+  .namelist button:hover { color: var(--brand-red); }
+
+  /* ---- Recruitment charts ---- */
+  .ttfbox { background: var(--navy); border-radius: 22px; padding: 22px 18px; }
+  .ttfbox .big { font-size: 72px; font-weight: 900; letter-spacing: -.05em; line-height: .9; color: var(--brand-amber); }
+  .ttfbox .cap { font-family: var(--font-hand); font-size: 20px; color: var(--offwhite); margin-top: 6px; }
+  .ttfstats b { color: var(--brand-red); }
+  .fbar { border-radius: 8px 8px 0 0; transition: translate .25s var(--ease-out), filter .2s ease; }
+  .fbar.total { background: var(--sky); }
+  .fbar.done { background: var(--brand-red); }
+  .fbar:hover { filter: none; translate: 0 -5px; }
+  .fbar .v { font-family: var(--font-display); font-weight: 800; }
+  .legendrow .sw { border-radius: 50%; }
+  .legendrow span:nth-child(2) .sw { background: var(--brand-red) !important; }
+  .flabels span { font-family: var(--font-heading); font-weight: 600; }
+  .flabels span.cur { color: var(--brand-red); }
+  .lbtrack { height: 22px; border-radius: 999px; background: rgba(166,222,255,.35); }
+  .lbfill { border-radius: 999px; background: var(--brand-red); }
+  .lbrow:first-child .lbfill { background: var(--brand-amber); }
+  .lbrow { transition: translate .25s var(--ease-out); }
+  .lbrow:hover { translate: 6px 0; }
+  .lbrow:hover .lbname { color: var(--brand-red); text-decoration: none; }
+  .lbnum { font-family: var(--font-display); font-weight: 900; font-size: 15px; }
+  .recnote { border-radius: 16px; }
+
+  /* ---- Stage board ---- */
+  .stagerow { border-left-width: 8px; border-left-color: var(--sky); }
+  .stagerow.has { border-left-color: var(--brand-amber); }
+  .stagerow.hasstuck { border-left-color: var(--brand-red); }
+  .stagecount { min-width: 44px; height: 44px; border-radius: 22px; font-size: 22px; font-weight: 900; background: var(--muted-bg); color: var(--navy); }
+  .stagerow.has .stagecount { background: var(--brand-amber); color: var(--navy); rotate: -4deg; }
+  .stagerow.hasstuck .stagecount { background: var(--brand-red); color: var(--offwhite); rotate: 4deg; }
+  .stagerow.hasstuck .stagebar i { background: var(--brand-red); }
+
+  /* ---- Popover ---- */
+  .popover-overlay { background: rgba(0,26,64,.55); }
+  .popover-card { border-radius: 28px; max-width: 400px; overflow: hidden; }
+  .popover-card .phead { background: var(--navy); border-bottom: 0; padding: 20px 22px 16px; }
+  .popover-card .phead h3 { color: var(--offwhite); font-size: 18px; font-weight: 900; }
+  .popover-card .pclose { color: var(--brand-amber); font-size: 26px; transition: rotate .25s var(--ease-out), scale .2s var(--ease-out); }
+  .popover-card .pclose:hover { color: var(--offwhite); rotate: 90deg; scale: 1.15; }
+  .popover-card .pbody { padding: 8px 22px 20px; }
+  .popover-item.linkable:hover { background: rgba(166,222,255,.35); }
+  .popover-item.overdue { background: rgba(255,64,64,.10); border-radius: 14px; }
+  .popover-item.overdue span { color: var(--brand-red-dark); }
+  .popover-item.linkable b:after { color: var(--brand-red); }
+
+  /* ---- Mini timeline (pipeline cards) + stuck/ready rows ---- */
+  .mdot { width: 20px; height: 20px; font-size: 10px; border-width: 3px; }
+  .mdot.done { background: var(--navy); border-color: var(--navy); color: var(--offwhite); }
+  .mdot.current { background: var(--brand-amber); border-color: var(--brand-amber); color: var(--navy); animation: hsHalo 2.2s ease-in-out infinite; }
+  .mdot.stuck { background: var(--brand-red); border-color: var(--brand-red); color: var(--offwhite); }
+  .mline { height: 3px; border-radius: 3px; }
+  .mline.done { background: var(--navy); }
+  .stuckrow { border-radius: 18px; padding: 12px 14px; background: rgba(255,64,64,.07); border-color: rgba(255,64,64,.25); }
+  .stuckrow .stucktext { color: #B81F1F; }
+  .stuckrow.ok { background: rgba(166,222,255,.45); border-color: rgba(166,222,255,.9); }
+  .stuckrow.ok .stucktext { color: var(--navy); font-weight: 800; }
+  .readytag { background: var(--brand-amber); color: var(--navy); font-family: var(--font-heading); letter-spacing: .08em; rotate: -3deg; }
+  .followupbtn, .announcebtn { box-shadow: var(--sh-sm); }
+  @media (prefers-reduced-motion: reduce) { .mdot.current { animation: none !important; } }
+
+  @media (max-width: 520px) {
+    header h1 { font-size: 28px; max-width: 86%; }
+    header p.sub { max-width: 80%; font-size: 18px; }
+    header::after { width: 100px; height: 100px; right: -36px; top: 70px; }
+    header::before { display: none; }
+    .stattile .num { font-size: 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    header::before, header::after, .hnode.current .hcircle, .step.current .node, .statusnow .dot,
+    .hnode.done .hcircle, .step.done .node, .step.stuck .node { animation: none !important; }
+    .stattile, .metriccard, .reccard, .breakdowncol, .stagerow { transition: none; }
+    .stattile.clickable:hover, .metriccard:hover, .reccard:hover, .breakdowncol:hover, .stagerow:hover, .fbar:hover, .lbrow:hover { translate: none; }
+  }
+  /* Admin gate (2026-11-11): recruiters only use "My New Hire Process". */
+  .navtab.locked { opacity: .45; filter: grayscale(1); cursor: not-allowed; box-shadow: none !important; }
+  .navtab.locked:hover { background: rgba(252,252,250,.08); border-color: rgba(252,252,250,.35); }
+  .adminbtn { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1.5px solid rgba(252,252,250,.35); background: transparent; color: var(--sky); font: 700 12.5px inherit; font-family: inherit; cursor: pointer; }
+  .adminbtn:hover { border-color: var(--offwhite); color: var(--offwhite); }
+  .adminbtn.on { background: var(--offwhite); color: var(--navy-ink); border-color: var(--offwhite); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brandrow">
+      <img id="logoImg" src="" alt="HomeSí">
+      <div class="tag">Your Path to Growth<br>Starts Here!</div>
+    </div>
+    <h1 id="pageTitle">Where is your hiring process?</h1>
+    <p class="sub" id="pageSub">Live status, pulled directly from the HomeSí New Hire Pipeline board.</p>
+    <button class="backlink" id="backLink" style="display:none;"></button>
+    <div class="navtabs" id="navTabs" style="display:none;">
+      <button class="navtab" id="navDashboard">📊 Dashboard</button>
+      <button class="navtab" id="navRecruiter">👤 My New Hire Process</button>
+      <button class="navtab" id="navPipeline">🧭 See Pipeline</button>
+    </div>
+    <button class="adminbtn" id="adminBtn" type="button">🔒 Admin</button>
+  </header>
+
+  <div id="loading" class="loading">Loading…</div>
+  <div id="errorbox" class="errorbox" style="display:none;"></div>
+  <div id="warnBox" class="recnote" style="display:none; margin:14px 20px 36px; position:relative; z-index:3; background:#fff3d9; color:#7a5200; font-weight:600;"></div>
+
+  <!-- Screen 0: PMO dashboard -->
+  <div id="screenDashboard" style="display:none;">
+    <div class="stattiles" id="statTiles"></div>
+    <div class="metricsgrid" id="metricsGrid"></div>
+    <div class="breakdownrow" id="breakdownRow"></div>
+    <div id="recruitSection"></div>
+  </div>
+
+  <!-- Screen 0b: See Pipeline (stage-by-stage view + every process) -->
+  <div id="screenPipeline" style="display:none;">
+    <div class="card">
+      <div class="trackrow" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+        <p class="id">Live pipeline</p>
+        <p class="name" id="pipeSummary"></p>
+        <p class="meta" id="pipeMeta"></p>
+      </div>
+      <div class="pipefilter">
+        <label for="pipeRecruiter">Recruiter</label>
+        <select id="pipeRecruiter" class="yearsel"></select>
+      </div>
+    </div>
+    <div class="sectionhead"><h2>Who is where right now</h2><p>One row per stage — tap a name to open that person's timeline. Red = looks stuck (7+ days). Supreme HR Verification and Equipment &amp; Access run in parallel, so one person can appear in both.</p></div>
+    <div class="stageboard" id="stageBoard"></div>
+    <div class="sectionhead"><h2>Every process</h2></div>
+    <div class="dashlist" id="pipeList"></div>
+  </div>
+
+  <!-- Screen 1: recruiter picker -->
+  <div id="screenPicker" style="display:none;">
+    <div class="pickerbox">
+      <p class="hint">Type or pick your name to see your New Hire Process — every hire you recruited and where each one stands.</p>
+      <input type="text" id="recruiterSearch" class="searchbox" placeholder="Search recruiter name…" autocomplete="off">
+      <ul class="namelist" id="recruiterList"></ul>
+      <p class="emptynote" id="recruiterEmpty" style="display:none;">No recruiter matches that name.</p>
+    </div>
+  </div>
+
+  <!-- Screen 2: this recruiter's pipeline -->
+  <div id="screenList" style="display:none;">
+    <div class="card">
+      <div class="trackrow" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+        <p class="id">Recruiter</p>
+        <p class="name" id="listRecruiterName"></p>
+        <p class="meta" id="listCount"></p>
+      </div>
+    </div>
+    <div class="candlist" id="candList"></div>
+  </div>
+
+  <!-- Screen 3: candidate detail -->
+  <div id="screenDetail" style="display:none;">
+    <div class="card">
+      <div class="trackrow">
+        <p class="id">Item ID &nbsp;<b id="itemId"></b></p>
+        <p class="name"><span id="name"></span><span class="rolebadge" id="roleBadge" style="display:none;"></span></p>
+        <p class="meta" id="supremeAka" style="display:none;"></p>
+        <p class="meta"><span id="branch"></span> · Recruiter: <span id="recruiter"></span></p>
+        <p class="meta" id="headerDates"></p>
+        <p class="meta" id="headerLongest" style="display:none;"></p>
+      </div>
+      <div class="statusnow">
+        <div class="dot"></div>
+        <div>
+          <p class="label">Current Status</p>
+          <p class="headline" id="headline"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-toggle">
+      <button class="toggle-btn active" id="btnHorizontal">Horizontal View</button>
+      <button class="toggle-btn" id="btnVertical">Full Timeline</button>
+    </div>
+
+    <div id="viewHorizontal">
+      <div class="hstepper">
+        <div class="hnode-row" id="stepperRow"></div>
+      </div>
+      <div class="section">
+        <h2>Supreme HR verification detail</h2>
+        <p class="note">Lives in a system outside HomeSí — read-only, pulled live directly from Supreme's HR tracking board.</p>
+        <div id="checklist"></div>
+      </div>
+      <div class="section">
+        <h2>Equipment &amp; access</h2>
+        <p class="note">🏛️ Owned by Supreme Lending, not HomeSí — read live from the Onboarding Pipeline 🛫 board.</p>
+        <div id="equipmentChecklist"></div>
+      </div>
+    </div>
+
+    <div id="viewVertical" style="display:none;">
+      <div class="timeline" id="verticalTimeline"></div>
+      <div class="delivered" id="deliveredBanner" style="display:none;">
+        <h2>Welcome aboard! <b>You're now part of HomeSí.</b></h2>
+        <p>When you reach this point, the hiring process is complete — HomeSí, powered by Supreme Lending.</p>
+      </div>
+      <div class="legend">
+        <span><i class="dot2 done"></i>Completed</span>
+        <span><i class="dot2 wip"></i>In Progress</span>
+        <span><i class="dot2 pending"></i>Pending</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    This page fetches live data from monday.com on every load — it is never a stale snapshot. Colors and layout follow
+    HomeSí brand guidelines. Powered by HomeSí + Supreme Lending.
+  </p>
+</div>
+
+<!-- Floating popover (dashboard stat tiles + By Role/By Branch chips) -->
+<div class="popover-overlay" id="popoverOverlay" style="display:none;">
+  <div class="popover-card">
+    <div class="phead">
+      <h3 id="popoverTitle"></h3>
+      <button class="pclose" id="popoverClose" aria-label="Close">×</button>
+    </div>
+    <div class="pbody" id="popoverBody"></div>
+  </div>
+</div>
+
+<!-- Honest confirmation after a follow-up draft opens in Outlook Web -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---------- Admin gate (2026-11-11, per Ricardo) ----------
+  // Dashboard, See Pipeline and "Request Follow Up" are admin-only. The admin
+  // password is checked SERVER-side (ADMIN_PASSWORD env var); the browser only
+  // remembers it on the admin's own device and sends it as "x-admin-key".
+  const ADMIN_KEY = "nhAdminKey";
+  function adminKey() { try { return localStorage.getItem(ADMIN_KEY) || ""; } catch (e) { return ""; } }
+  function isAdminUser() { return !!adminKey(); }
+  function lockAdmin() { try { localStorage.removeItem(ADMIN_KEY); } catch (e) { /* ignore */ } }
+  const rawFetch = window.fetch.bind(window);
+  window.fetch = (url, opts) => {
+    opts = opts || {};
+    if (typeof url === "string" && url.startsWith("/.netlify/functions/") && adminKey()) {
+      opts = Object.assign({}, opts, { headers: Object.assign({}, opts.headers || {}, { "x-admin-key": adminKey() }) });
+    }
+    return rawFetch(url, opts);
+  };
+  async function unlockAdmin() {
+    const pw = window.prompt("Admin password:");
+    if (!pw || !pw.trim()) return false;
+    const res = await rawFetch("/.netlify/functions/admin-check", { method: "POST", headers: { "x-admin-key": pw.trim() } });
+    if (res.ok) { try { localStorage.setItem(ADMIN_KEY, pw.trim()); } catch (e) { /* ignore */ } return true; }
+    window.alert("Incorrect admin password.");
+    return false;
+  }
+  const LOGO_WHITE = "data:image/png;base64,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";
+  document.getElementById('logoImg').src = LOGO_WHITE;
+
+  const STAGE_ICONS = { done: "✔", current: "●", upcoming: "○", stuck: "⚠" };
+  const els = {
+    loading: document.getElementById("loading"),
+    errorbox: document.getElementById("errorbox"),
+    dashboard: document.getElementById("screenDashboard"),
+    picker: document.getElementById("screenPicker"),
+    list: document.getElementById("screenList"),
+    detail: document.getElementById("screenDetail"),
+    pipeline: document.getElementById("screenPipeline"),
+    pageTitle: document.getElementById("pageTitle"),
+    pageSub: document.getElementById("pageSub"),
+    backLink: document.getElementById("backLink"),
+    navTabs: document.getElementById("navTabs"),
+  };
+  const ALL_SCREENS = [els.dashboard, els.picker, els.list, els.detail, els.pipeline];
+  const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function showWarnings(list) {
+    const el = document.getElementById("warnBox");
+    el.style.display = list && list.length ? "block" : "none";
+    el.textContent = (list || []).join(" ");
+  }
+  function showOnly(screenEl) {
+    ALL_SCREENS.forEach(s => s.style.display = (s === screenEl ? "block" : "none"));
+    els.loading.style.display = "none";
+    els.errorbox.style.display = "none";
+  }
+  function showLoading() {
+    ALL_SCREENS.forEach(s => s.style.display = "none");
+    els.errorbox.style.display = "none";
+    els.loading.style.display = "block";
+  }
+  function showError(msg) {
+    ALL_SCREENS.forEach(s => s.style.display = "none");
+    els.loading.style.display = "none";
+    els.errorbox.style.display = "block";
+    els.errorbox.textContent = msg;
+  }
+
+  // Shows the Dashboard/By Recruiter nav tabs (top-level screens only — the
+  // list/detail screens use the contextual "← Back" link instead) and marks
+  // which one is active.
+  function setNavTabs(active) {
+    if (!active) { els.navTabs.style.display = "none"; return; }
+    els.navTabs.style.display = "flex";
+    document.getElementById("navDashboard").classList.toggle("active", active === "dashboard");
+    document.getElementById("navRecruiter").classList.toggle("active", active === "recruiter");
+    document.getElementById("navPipeline").classList.toggle("active", active === "pipeline");
+    const locked = !isAdminUser();
+    ["navDashboard", "navPipeline"].forEach((id) => {
+      const b = document.getElementById(id);
+      b.classList.toggle("locked", locked);
+      b.title = locked ? "Admin only" : "";
+      b.setAttribute("aria-disabled", String(locked));
+    });
+  }
+  function refreshAdminBtn() {
+    const b = document.getElementById("adminBtn");
+    b.textContent = isAdminUser() ? "🔓 Admin · Sign out" : "🔒 Admin";
+    b.classList.toggle("on", isAdminUser());
+  }
+
+  function navigate(params, push) {
+    const usp = new URLSearchParams();
+    if (params.recruiter) usp.set("recruiter", params.recruiter);
+    if (params.item) usp.set("item", params.item);
+    if (params.view) usp.set("view", params.view);
+    if (params.from) usp.set("from", params.from);
+    const url = window.location.pathname + (usp.toString() ? "?" + usp.toString() : "");
+    if (push) window.history.pushState({}, "", url);
+    else window.history.replaceState({}, "", url);
+    route();
+  }
+
+  async function adminNavigate(params) {
+    if (isAdminUser() || (await unlockAdmin())) navigate(params, true);
+  }
+  document.getElementById("navDashboard").addEventListener("click", () => adminNavigate({}));
+  document.getElementById("navRecruiter").addEventListener("click", () => navigate({ view: "recruiter" }, true));
+  document.getElementById("navPipeline").addEventListener("click", () => adminNavigate({ view: "pipeline" }));
+  document.getElementById("adminBtn").addEventListener("click", async () => {
+    if (isAdminUser()) {
+      if (!window.confirm("Sign out of the admin view on this device?")) return;
+      lockAdmin(); refreshAdminBtn(); navigate({ view: "recruiter" }, true);
+    } else if (await unlockAdmin()) { refreshAdminBtn(); navigate({}, true); }
+  });
+  // Which home screen the person is on (so a click-through to a timeline can
+  // return to the right place, and an action can refresh the right screen).
+  function currentHomeView() { return new URLSearchParams(window.location.search).get("view") === "pipeline" ? "pipeline" : "dashboard"; }
+  function reloadHome() { return currentHomeView() === "pipeline" ? loadPipelineView(true) : loadDashboard(true); }
+
+  function renderChecklistRow(label, value, opts) {
+    opts = opts || {};
+    const v = (value || "").trim();
+    let pillClass, pillText;
+    if (opts.dateMode) {
+      // Date-backed row (e.g. a monday mirror column): show the real date when
+      // present, otherwise an honest "not yet" pending pill — never a fake date.
+      if (v) { pillClass = "ok"; pillText = v; }
+      else { pillClass = "pending"; pillText = opts.emptyText || "Not started"; }
+    } else {
+      pillClass = "pending"; pillText = v || "Not started";
+      const okValues = ["completed", "yes", "sent - received all", "done"];
+      const wipValues = ["requested", "in transit", "submitted", "consent needed", "sent - incomplete", "preparing to ship", "shipping approved", "sent - delayed", "delayed", "planned"];
+      // Not-applicable sub-steps (2026-10-20, per Ricardo): some roles — LOA,
+      // BD, NPPM, and a BM without an NMLS license — never need NMLS Access.
+      // Supreme's own board already marks this with the status "N/A"; shown
+      // here as its own neutral pill (reusing the same muted styling as
+      // "pending", not a new color) with "Not applicable" text, instead of
+      // the item looking perpetually pending/stuck.
+      const naValues = ["n/a", "na", "not applicable"];
+      const lower = v.toLowerCase();
+      if (naValues.includes(lower)) { pillClass = "na"; pillText = "Not applicable"; }
+      else if (okValues.includes(lower)) pillClass = "ok";
+      else if (wipValues.includes(lower)) pillClass = "wip";
+    }
+    // A not-applicable item has nothing for the candidate to act on, so the
+    // "needs candidate consent/access/documents" note would be misleading —
+    // suppress it whenever the pill reads "na".
+    const noteHtml = (opts.note && pillClass !== "na") ? `<span class="needsnote">👤 ${opts.note}</span>` : "";
+    // Optional outbound link (e.g. a UPS tracking URL built from the number
+    // itself) — only wraps the pill text when a real link was actually
+    // built; a missing tracking number still shows the honest "not yet" pill.
+    const pillInner = opts.href ? `<a href="${opts.href}" target="_blank" rel="noopener">${pillText} ↗</a>` : pillText;
+    return `<div class="scan"><span class="scanname"><span>${label}</span>${noteHtml}</span><span class="pill ${pillClass}">${pillInner}</span></div>`;
+  }
+
+  // ---------- Floating popover (In Process / Ready for Onboarding tiles, ----------
+  // ---------- and By Role / By Branch chips) ----------
+  function candidatePopoverItem(c) {
+    return `<div class="popover-item linkable" data-item="${c.itemId}" title="Open this process"><b>${esc(c.name)}</b><span>${esc(c.role || "—")} · Branch ${esc(c.branch || "—")}</span></div>`;
+  }
+  // Completed-track entry of the Ready for Onboarding list (2026-10-08): shows
+  // when they became ready and flags overdue (7+ days, not yet "Onboarded").
+  function readyPopoverItem(r) {
+    const when = new Date(r.readyAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const ago = r.daysSince <= 0 ? "today" : `${r.daysSince}d ago`;
+    const status = r.overdue ? `OVERDUE · ready ${when} (${ago})` : `Ready ${when} (${ago})`;
+    const sent = r.sentAt ? new Date(r.sentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+    const process = r.processDays == null
+      ? "Process length: —"
+      : `Process: ${r.processDays} ${r.processDays === 1 ? "day" : "days"} from sent to Supreme (${sent}) to ready (${when})`;
+    return `<div class="popover-item readyitem${r.overdue ? " overdue" : ""}"><b class="plink" data-item="${r.itemId}" title="Open this process">${esc(r.name)}</b><span>${r.role || "—"} · Branch ${r.branch || "—"} · ${status}</span><div class="rmeta">${process}</div><div class="rcontact" data-item="${r.itemId}"></div></div>`;
+  }
+  // Phone + personal email for the Ready list. Behind the same PIN as
+  // "Announce Onboarding" (it is personal data and this site has no login),
+  // fetched on demand so it never travels in the public dashboard payload.
+  async function loadReadyContacts(btn, retried) {
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Loading…";
+    try {
+      const res = await fetch("/.netlify/functions/ready-contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: announcePin() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && !retried) {
+        const entered = window.prompt("Enter the access PIN to show contact details (phone and personal email):");
+        btn.disabled = false;
+        btn.textContent = original;
+        if (entered) { saveAnnouncePin(entered.trim()); return loadReadyContacts(btn, true); }
+        return;
+      }
+      if (!res.ok) throw new Error(data.needsPin ? "Incorrect PIN." : (data.error || "Could not load contact details"));
+      document.querySelectorAll(".rcontact").forEach(el => {
+        const c = (data.contacts || {})[el.dataset.item] || {};
+        const phone = c.phone ? `<a href="tel:${c.phone.replace(/[^+\d]/g, "")}">📞 ${c.phone}</a>` : `<span>📞 not on file</span> `;
+        const email = c.email ? `<a href="mailto:${c.email}">✉ ${c.email}</a>` : `<span>✉ not on file</span>`;
+        el.innerHTML = `${phone}${email}`;
+      });
+      btn.style.display = "none";
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = original;
+      alert("Could not load contact details: " + err.message);
+    }
+  }
+  function showPopover(title, items, renderItem, footnote, afterRender) {
+    document.getElementById("popoverTitle").textContent = title;
+    const bodyEl = document.getElementById("popoverBody");
+    bodyEl.innerHTML = items.length
+      ? items.map(renderItem).join("") + (footnote ? `<p class="popover-note">${footnote}</p>` : "")
+      : `<p class="popover-empty">No candidates.</p>`;
+    if (items.length && afterRender) afterRender(bodyEl);
+    document.getElementById("popoverOverlay").style.display = "flex";
+  }
+  function hidePopover() {
+    document.getElementById("popoverOverlay").style.display = "none";
+  }
+
+  // Honest confirmation shown after a follow-up draft opens in Outlook Web —
+  // per Ricardo (2026-10-02): nothing sends itself, so the message says so
+  // plainly instead of implying an automatic send.
+  let toastTimer = null;
+  function showToast(message, duration) {
+    const el = document.getElementById("toast");
+    el.innerHTML = message;
+    el.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), duration || 6000);
+  }
+  document.getElementById("popoverClose").addEventListener("click", hidePopover);
+  // A person's name inside any popover opens that person's timeline.
+  document.getElementById("popoverBody").addEventListener("click", (e) => {
+    const t = e.target.closest(".popover-item.linkable[data-item], .plink[data-item]");
+    if (!t || !t.dataset.item) return;
+    hidePopover();
+    navigate({ item: t.dataset.item, from: currentHomeView() }, true);
+  });
+  document.getElementById("popoverOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "popoverOverlay") hidePopover();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hidePopover();
+  });
+
+  // ---------- Screen 0: PMO dashboard ----------
+  let dashboardData = null;
+
+  function fmtDays(n) {
+    if (n == null) return "—";
+    return `${n} ${n === 1 ? "day" : "days"}`;
+  }
+  // Returns {num, unit} rather than a combined string so callers can style
+  // the number and unit separately without regex-splitting a formatted string.
+  function fmtHoursParts(n) {
+    if (n == null) return { num: "—", unit: "" };
+    if (n < 24) return { num: n, unit: "h" };
+    return { num: Math.round(n / 24 * 10) / 10, unit: "d" };
+  }
+
+  function renderMiniTimeline(c) {
+    const mainStages = c.stages.slice(0, 4).concat([c.equipStage], c.stages.slice(4));
+    const stuckByKey = {};
+    c.stuckStages.forEach(s => stuckByKey[s.stageKey] = true);
+    return `<div class="minitimeline">` + mainStages.map((s, i) => {
+      const cls = stuckByKey[s.key] ? "stuck" : s.state;
+      const dot = `<div class="mdot ${cls}"></div>`;
+      const line = i < mainStages.length - 1 ? `<div class="mline ${s.state === "done" ? "done" : ""}"></div>` : "";
+      return `<div class="mnode-wrap" title="${s.label}">${dot}${line}</div>`;
+    }).join("") + `</div>`;
+  }
+
+  // Stuck-label text: a step whose only outstanding items are the
+  // CANDIDATE's own (Background Check, NMLS Access, I-9 Documents) reads
+  // differently from one Supreme's own team is sitting on — otherwise it
+  // looks like Supreme HR is slow when really we're waiting on the candidate
+  // (2026-10-02, per Ricardo — Angel Espinoza's case).
+  function stuckLabel(s) {
+    if (s.blockedByCandidate && s.candidatePendingItems && s.candidatePendingItems.length) {
+      return `⚠ Waiting on candidate <span class="sub">${s.candidatePendingItems.join(", ")}</span>`;
+    }
+    return `⚠ ${s.stageLabel} looks stuck`;
+  }
+
+  // Uniform across every stage (2026-10-20, stage redesign): all 5 stuck-
+  // capable stages — sent, packet_processing, supreme_hr, new_hire_welcome,
+  // equipment — now key off the same fixed 7-day elapsed-since-entry rule, so
+  // they all read the same way here too. Equipment's old target-date overdue
+  // signal is preserved as an extra, independent note (targetOverdueDays)
+  // rather than replacing this text.
+  function stuckDaysText(s) {
+    const base = `${fmtDays(s.daysInStage)} (usual ~${fmtDays(Math.round(s.thresholdDays))})`;
+    return s.targetOverdueDays ? `${base} · ${fmtDays(s.targetOverdueDays)} past target` : base;
+  }
+
+  function renderStuckRows(c) {
+    if (!c.stuckStages.length) return "";
+    return c.stuckStages.map(s => {
+      const daysText = stuckDaysText(s);
+      const label = `${stuckLabel(s)} <span class="sub">${daysText}</span>`;
+      if (s.followupRequestedAt) {
+        const since = new Date(s.followupRequestedAt);
+        const days = Math.max(0, Math.round((Date.now() - since.getTime()) / 86400000));
+        return `<div class="stuckrow"><span class="stucktext">${label}</span><span class="awaitingpill">✉ Awaiting response · ${days}d</span></div>`;
+      }
+      if (!s.canFollowUp || !isAdminUser()) {
+        return `<div class="stuckrow"><span class="stucktext">${label}</span></div>`;
+      }
+      return `<div class="stuckrow"><span class="stucktext">${label}</span><button class="followupbtn" data-item="${c.itemId}" data-stagekey="${s.stageKey}">Request Follow Up on Process</button></div>`;
+    }).join("");
+  }
+
+  // Single-stage version of renderStuckRows() above, for the Full Timeline
+  // (one candidate, one step at a time) rather than the dashboard's list of
+  // candidates. Same visual language (stuckrow/stucktext/followupbtn/
+  // awaitingpill) so "stuck" reads identically in both places.
+  function renderStuckBlock(stuckStages, stageKey) {
+    const s = (stuckStages || []).find((x) => x.stageKey === stageKey);
+    if (!s) return "";
+    const daysText = stuckDaysText(s);
+    const baseLabel = s.blockedByCandidate && s.candidatePendingItems && s.candidatePendingItems.length
+      ? `⚠ Waiting on candidate <span class="sub">${s.candidatePendingItems.join(", ")}</span>`
+      : "⚠ Looks stuck";
+    const label = `${baseLabel} <span class="sub">${daysText}</span>`;
+    if (s.followupRequestedAt) {
+      const since = new Date(s.followupRequestedAt);
+      const days = Math.max(0, Math.round((Date.now() - since.getTime()) / 86400000));
+      return `<div class="stuckrow"><span class="stucktext">${label}</span><span class="awaitingpill">✉ Awaiting response · ${days}d</span></div>`;
+    }
+    if (!s.canFollowUp || !isAdminUser()) {
+      return `<div class="stuckrow"><span class="stucktext">${label}</span></div>`;
+    }
+    return `<div class="stuckrow"><span class="stucktext">${label}</span><button class="followupbtn" data-stagekey="${s.stageKey}">Request Follow Up on Process</button></div>`;
+  }
+
+  // `onSuccess` lets the dashboard refresh its list and the Full Timeline
+  // refresh the single candidate's detail after a request is logged — same
+  // request, two different places to reload from.
+  async function requestFollowUp(btn, candidate, stuckStage, onSuccess) {
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Opening email…";
+    try {
+      const res = await fetch("/.netlify/functions/followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: candidate.itemId,
+          candidateName: candidate.name,
+          role: candidate.role,
+          branch: candidate.branch,
+          recruiter: candidate.recruiter,
+          stageKey: stuckStage.stageKey,
+          stageLabel: stuckStage.stageLabel,
+          area: stuckStage.area,
+          daysInStage: stuckStage.daysInStage,
+          thresholdDays: Math.round(stuckStage.thresholdDays),
+          blockedByCandidate: !!stuckStage.blockedByCandidate,
+          candidatePendingItems: stuckStage.candidatePendingItems || [],
+          stages: candidate.stages.slice(0, 4).concat([candidate.equipStage], candidate.stages.slice(4)),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not create follow-up");
+      window.open(data.owaLink, "_blank");
+      showToast("<b>Draft opened in a new tab.</b> Nothing is sent automatically — review it and click Send yourself from your own Supreme Outlook account.");
+      await (onSuccess ? onSuccess() : reloadHome());
+    } catch (err) {
+      alert("Could not open follow-up email: " + err.message);
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  // "Announce Onboarding" (2026-10-05, per Ricardo): opens a pre-filled Outlook
+  // Web draft telling the onboarding coordinator + cc chain that a READY
+  // candidate has completed every step. Nothing is sent automatically.
+  function renderAnnounceRow(c) {
+    if (!c.readyForOnboarding) return "";
+    const done = c.onboardingAnnouncedAt
+      ? `<span class="stucktext">Onboarding announced ${new Date(c.onboardingAnnouncedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>`
+      : `<span class="stucktext">All steps complete — ready to schedule onboarding.</span>`;
+    const label = c.onboardingAnnouncedAt ? "Announce again" : "Announce Onboarding";
+    return `<div class="stuckrow ok">${done}<button class="announcebtn${c.onboardingAnnouncedAt ? " done" : ""}" data-item="${c.itemId}">${label}</button></div>`;
+  }
+
+  function announcePin() { try { return sessionStorage.getItem("announcePin") || ""; } catch (e) { return ""; } }
+  function saveAnnouncePin(v) { try { sessionStorage.setItem("announcePin", v); } catch (e) { /* ignore */ } }
+
+  async function announceOnboarding(btn, candidate, retried) {
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Opening email…";
+    try {
+      const res = await fetch("/.netlify/functions/onboarding-announce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: candidate.itemId, pin: announcePin() }),
+      });
+      const data = await res.json();
+      if (res.status === 401 && data.needsPin && !retried) {
+        const entered = window.prompt("Enter the access PIN to open the onboarding announcement (it includes the new hire's contact details):");
+        btn.disabled = false;
+        btn.textContent = original;
+        if (entered) { saveAnnouncePin(entered.trim()); return announceOnboarding(btn, candidate, true); }
+        return;
+      }
+      if (!res.ok) throw new Error(data.needsPin ? "Incorrect PIN." : (data.error || "Could not create the announcement"));
+      window.open(data.owaLink, "_blank");
+      const gaps = (data.missing && data.missing.length)
+        ? ` <b>Add by hand:</b> couldn't find an email for ${data.missing.join(", ")}.`
+        : "";
+      const src = data.contactFrom ? ` Contact details taken from the form of <b>${data.contactFrom}</b>.` : "";
+      showToast("<b>Draft opened in a new tab.</b> Nothing is sent automatically — review it and click Send from your Supreme Outlook." + src + gaps);
+      await reloadHome();
+    } catch (err) {
+      alert("Could not open the onboarding announcement: " + err.message);
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  // "Announce all" (2026-10-15, per Ricardo): same idea as announceOnboarding()
+  // above, but one email for EVERY Ready for Onboarding candidate at once,
+  // with a table instead of a single NEW HIRE block. Same fixed To/Cc as the
+  // single-candidate version — no per-candidate recruiter/BM Cc here (see
+  // onboarding-announce-all.js for why).
+  // Puts an HTML table (and a plain-text twin) on the clipboard. Returns false if the browser refuses.
+  async function copyRich(html, text) {
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([text], { type: "text/plain" }),
+        })]);
+        return true;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return true; }
+    } catch (e) { /* fall through */ }
+    return false;
+  }
+  function showCopyFallback(text) {
+    const old = document.getElementById("copyFallback");
+    if (old) old.remove();
+    const box = document.createElement("div");
+    box.id = "copyFallback";
+    box.style.cssText = "position:fixed;inset:0;background:rgba(0,26,64,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+    box.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3);">'
+      + '<div style="font-weight:700;margin-bottom:8px;">Copy this into the email draft</div>'
+      + '<textarea readonly style="width:100%;height:240px;font:12.5px/1.4 monospace;padding:10px;border:1px solid #ccd;border-radius:8px;"></textarea>'
+      + '<div style="text-align:right;margin-top:10px;"><button type="button" id="cfClose" style="padding:8px 16px;border-radius:8px;border:0;background:#001a40;color:#fff;font-weight:600;cursor:pointer;">Close</button></div></div>';
+    document.body.appendChild(box);
+    const ta = box.querySelector("textarea");
+    ta.value = text;
+    ta.focus(); ta.select();
+    box.querySelector("#cfClose").addEventListener("click", () => box.remove());
+  }
+
+  async function announceOnboardingAll(btn, retried) {
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Opening email…";
+    try {
+      const res = await fetch("/.netlify/functions/onboarding-announce-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: announcePin() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && data.needsPin && !retried) {
+        const entered = window.prompt("Enter the access PIN to open the onboarding announcement (it includes every new hire's contact details):");
+        btn.disabled = false;
+        btn.textContent = original;
+        if (entered) { saveAnnouncePin(entered.trim()); return announceOnboardingAll(btn, true); }
+        return;
+      }
+      if (!res.ok) throw new Error(data.needsPin ? "Incorrect PIN." : (data.error || "Could not create the announcement"));
+      // Many candidates = a compose link Outlook's sign-in cannot carry (AADSTS90015), so the
+      // server sends only a short draft and the table is put on the clipboard to paste into it.
+      let copied = true;
+      if (data.mode === "clipboard") copied = await copyRich(data.pasteHtml, data.pasteText);
+      window.open(data.owaLink, "_blank");
+      const gaps = (data.missingForm && data.missingForm.length)
+        ? ` <b>No New Hire Form match for:</b> ${data.missingForm.join(", ")} — their row shows "not on file" for contact details.`
+        : "";
+      if (data.mode === "clipboard" && copied) {
+        showToast(`<b>Draft opened in a new tab.</b> The table with all ${data.count} ready candidates is on your clipboard: click where the draft says <i>Paste the candidates table here</i> and press <b>Ctrl+V</b>. Nothing is sent automatically.` + gaps);
+      } else if (data.mode === "clipboard") {
+        showCopyFallback(data.pasteText);
+        showToast(`<b>Draft opened in a new tab.</b> Your browser blocked the automatic copy — copy the table from the box on this page and paste it into the draft.` + gaps);
+      } else {
+        showToast(`<b>Draft opened in a new tab</b> with all ${data.count} ready candidates. Nothing is sent automatically — review it and click Send from your Supreme Outlook.` + gaps);
+      }
+      btn.textContent = original;
+      btn.disabled = false;
+    } catch (err) {
+      alert("Could not open the onboarding announcement: " + err.message);
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  async function loadDashboard(silent) {
+    els.pageTitle.textContent = "New Hire Pipeline — Dashboard";
+    els.pageSub.textContent = "Live snapshot across every recruiter, pulled directly from monday.com.";
+    els.backLink.style.display = "none";
+    setNavTabs("dashboard");
+    if (!silent) showLoading();
+    try {
+      const res = await fetch("/.netlify/functions/dashboard");
+      const data = await res.json();
+      if (res.status === 401 && data.needsAdmin) { lockAdmin(); refreshAdminBtn(); navigate({ view: "recruiter" }, false); return; }
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+      dashboardData = data;
+      showWarnings(data.warnings);
+
+      // In Process tile shows its by-role breakdown inline (same counts as
+      // the "By Role" card below, just surfaced at a glance) and, like Ready
+      // for Onboarding, opens a floating popover listing the actual people
+      // behind the number when clicked.
+      const inProcessBreakdown = data.byRole.length
+        ? `<div class="breakdown">${data.byRole.map(x => `${x.key} · ${x.count}`).join(" &nbsp;/&nbsp; ")}</div>`
+        : "";
+      document.getElementById("statTiles").innerHTML = `
+        <div class="stattile clickable" id="tileInProcess"><div class="num">${data.totals.inProcess}</div><div class="lbl">In Process</div>${inProcessBreakdown}</div>
+        <div class="stattile ready clickable" id="tileReady"><div class="num">${data.totals.readyForOnboarding}</div><div class="lbl">Ready for Onboarding</div>${data.totals.readyOverdue ? `<div class="overduenote">${data.totals.readyOverdue} overdue</div>` : ""}</div>
+        <div class="stattile"><div class="num">${data.totals.activated}</div><div class="lbl">Activated (Roster)</div></div>`;
+      document.getElementById("tileInProcess").addEventListener("click", () => {
+        showPopover("In Process", data.candidates.filter(c => !c.readyForOnboarding), candidatePopoverItem);
+      });
+      document.getElementById("tileReady").addEventListener("click", () => {
+        showPopover("Ready for Onboarding", data.readyRecent || [], readyPopoverItem,
+          "Mark \"Onboarded\" in monday to remove someone from this list. After 7 days they stay here in red until marked.",
+          (bodyEl) => {
+            const btn = document.createElement("button");
+            btn.className = "popover-contactbtn";
+            btn.textContent = "Show contact details (phone & email)";
+            btn.addEventListener("click", () => loadReadyContacts(btn));
+            bodyEl.insertBefore(btn, bodyEl.firstChild);
+            if ((data.readyRecent || []).length) {
+              const allBtn = document.createElement("button");
+              allBtn.className = "announcebtn";
+              allBtn.style.marginBottom = "10px";
+              allBtn.textContent = `Announce all ${data.readyRecent.length} in one email`;
+              allBtn.addEventListener("click", () => announceOnboardingAll(allBtn));
+              bodyEl.insertBefore(allBtn, bodyEl.firstChild);
+            }
+          });
+      });
+
+      const m = data.metrics;
+      const metricTile = (num, unit, label, sample) => `
+        <div class="metriccard"><div class="mnum">${num}<span class="unit">${unit}</span></div>
+        <div class="mlbl">${label}</div>
+        <div class="msample">${sample}</div></div>`;
+      const sampleText = (block) => block && block.count ? `Based on ${block.count} candidate${block.count === 1 ? "" : "s"}${block.excluded ? ` · ${block.excluded} bulk-loaded item${block.excluded === 1 ? "" : "s"} left out` : ""}` : "Not enough data yet";
+      const followupParts = m.followupResponse ? fmtHoursParts(m.followupResponse.avgHours) : { num: "—", unit: "" };
+      document.getElementById("metricsGrid").innerHTML =
+        metricTile(m.formToHrDone ? m.formToHrDone.avgDays : "—", "d", "Avg. Form → Onboarded (HR complete)", sampleText(m.formToHrDone)) +
+        metricTile(m.formToReceived && m.formToReceived.avgDays != null ? m.formToReceived.avgDays : "—", "d", "Avg. Form Registered → HomeSí Received", sampleText(m.formToReceived)) +
+        metricTile(m.sentToHrDone ? m.sentToHrDone.avgDays : "—", "d", "Avg. Sent → Supreme HR Complete", sampleText(m.sentToHrDone)) +
+        metricTile(followupParts.num, followupParts.unit, "Avg. Follow-up Response Time", sampleText(m.followupResponse));
+
+      // Each chip opens a popover with the actual candidates behind that
+      // count — filtered client-side from data.candidates, matching the
+      // exact same "Unspecified" fallback the backend's countBy() uses so a
+      // chip's list always matches its own number.
+      const chipList = (arr, type) => arr.length
+        ? `<div class="chiprow">${arr.map(x => `<span class="chip clickable" data-type="${type}" data-key="${x.key}">${x.key} · ${x.count}</span>`).join("")}</div>`
+        : `<p class="emptynote">No data.</p>`;
+      document.getElementById("breakdownRow").innerHTML = `
+        <div class="breakdowncol"><h3>By Role</h3>${chipList(data.byRole, "role")}</div>
+        <div class="breakdowncol"><h3>By Branch</h3>${chipList(data.byBranch, "branch")}</div>`;
+      document.getElementById("breakdownRow").querySelectorAll(".chip.clickable").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const type = chip.dataset.type;
+          const key = chip.dataset.key;
+          const filtered = data.candidates.filter(c => !c.readyForOnboarding && (
+            (type === "role" ? (c.role || "Unspecified") : (c.branch || "Unspecified")) === key
+          ));
+          showPopover(`${type === "role" ? "Role" : "Branch"}: ${key}`, filtered, candidatePopoverItem);
+        });
+      });
+
+      renderRecruitment(data.recruitment);
+
+      showOnly(els.dashboard);
+    } catch (err) {
+      showError("Could not load dashboard: " + err.message);
+    }
+  }
+
+  // ---------- Recruitment section (moved from the KYN dashboard, 2026-10-21) ----------
+  // Everything is computed here from data.recruitment.rows (one row per person who
+  // entered the hiring process — see buildRecruitmentRows in _lib/monday.js):
+  // { name, branch, role, recruiter, date (start), status, source, daysToStart, itemId }
+  // status: done | canc | open | unknown. Plain CSS bars — no chart library needed.
+  const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const REC_STATUS_LABEL = { done: "Completed", canc: "Cancelled", open: "In progress", unknown: "Outcome not on record" };
+  const recState = { year: null, mode: "month", days: "all" };
+  let recRows = [];
+
+  function recPersonItem(r) {
+    const when = new Date(r.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const link = r.itemId ? ` linkable" data-item="${r.itemId}" title="Open this process` : "";
+    return `<div class="popover-item${link}"><b>${esc(r.name)}</b><span>${esc(r.role || "—")} · Branch ${esc(r.branch || "—")} · ${REC_STATUS_LABEL[r.status] || ""} · ${when}</span></div>`;
+  }
+
+  function renderTimeToFill() {
+    const el = document.getElementById("recTTF");
+    const done = recRows.filter(r => r.status === "done");
+    const valid = done.filter(r => r.daysToStart != null && r.daysToStart >= 0).map(r => r.daysToStart);
+    const skipped = done.length - valid.length;
+    if (!valid.length) { el.innerHTML = `<p class="emptynote">Not enough data yet to calculate.</p>`; return; }
+    const avg = Math.round(valid.reduce((a, b) => a + b, 0) / valid.length);
+    el.innerHTML = `
+      <div class="ttfbox"><div class="big">${avg}</div><div class="cap">average days</div></div>
+      <div class="ttfstats">
+        <span>Fastest: <b>${Math.min(...valid)}d</b></span>
+        <span>Slowest: <b>${Math.max(...valid)}d</b></span>
+        <span>Based on <b>${valid.length}</b> hires</span>
+      </div>
+      ${skipped ? `<div class="recnote">${skipped} completed ${skipped === 1 ? "hire has" : "hires have"} no usable registration date and ${skipped === 1 ? "is" : "are"} left out of this average.</div>` : ""}`;
+  }
+
+  function renderFunnel() {
+    const el = document.getElementById("recFunnel");
+    const year = recState.year;
+    const now = new Date();
+    const inYear = recRows.filter(r => r.date.slice(0, 4) === String(year));
+    let periods;
+    if (recState.mode === "quarter") {
+      periods = [1, 2, 3, 4].map(q => ({ key: q, label: "Q" + q, test: (r) => Math.ceil(parseInt(r.date.slice(5, 7), 10) / 3) === q, current: now.getFullYear() === year && Math.ceil((now.getMonth() + 1) / 3) === q }));
+    } else {
+      const lastMonth = now.getFullYear() === year
+        ? Math.max(now.getMonth() + 1, ...inYear.map(r => parseInt(r.date.slice(5, 7), 10)))
+        : 12;
+      periods = Array.from({ length: lastMonth }, (_, i) => ({ key: i + 1, label: MONTH_NAMES[i], test: (r) => parseInt(r.date.slice(5, 7), 10) === i + 1, current: now.getFullYear() === year && now.getMonth() === i }));
+    }
+    periods.forEach(p => { p.all = inYear.filter(p.test); p.done = p.all.filter(r => r.status === "done"); });
+    const max = Math.max(1, ...periods.map(p => p.all.length));
+    const H = 140;
+    const bar = (cls, n, i, kind) => n === 0
+      ? `<button class="fbar ${cls}" style="height:2px" data-i="${i}" data-kind="${kind}" aria-label="0"></button>`
+      : `<button class="fbar ${cls}" style="height:${Math.max(4, Math.round(n / max * H))}px" data-i="${i}" data-kind="${kind}"><span class="v">${n}</span></button>`;
+    el.innerHTML = `
+      <div class="fchart">${periods.map((p, i) => `<div class="fgroup"><div class="fbars">${bar("total", p.all.length, i, "all")}${bar("done", p.done.length, i, "done")}</div></div>`).join("")}</div>
+      <div class="flabels">${periods.map(p => `<span class="${p.current ? "cur" : ""}">${p.label}</span>`).join("")}</div>`;
+    el.querySelectorAll(".fbar").forEach(btn => btn.addEventListener("click", () => {
+      const p = periods[parseInt(btn.dataset.i, 10)];
+      const doneKind = btn.dataset.kind === "done";
+      showPopover(`${p.label} ${year} · ${doneKind ? "Completed" : "Total funnel"}`, doneKind ? p.done : p.all, recPersonItem);
+    }));
+    const open = periods.filter(p => p.current).flatMap(p => p.all.filter(r => r.status === "open"));
+    const note = document.getElementById("recFunnelNote");
+    note.style.display = open.length ? "block" : "none";
+    if (open.length) {
+      const cur = periods.find(p => p.current);
+      note.innerHTML = `<b>${cur.label} is still open:</b> ${open.length} ${open.length === 1 ? "person is" : "people are"} still in progress — the Completed bar will keep rising as they finish.`;
+    }
+  }
+
+  function renderLeaderboard() {
+    const el = document.getElementById("recLeader");
+    const cutoff = recState.days === "all" ? null : new Date(Date.now() - recState.days * 86400000);
+    const hires = {};
+    let noRecruiter = 0;
+    recRows.forEach(r => {
+      if (r.status !== "done") return;
+      if (cutoff && new Date(r.date + "T00:00:00") < cutoff) return;
+      if (!r.recruiter) { noRecruiter += 1; return; }
+      (hires[r.recruiter] = hires[r.recruiter] || []).push(r);
+    });
+    const names = Object.keys(hires).sort((a, b) => hires[b].length - hires[a].length || a.localeCompare(b));
+    if (!names.length) { el.innerHTML = `<p class="emptynote">No completed hires with a recruiter on record for this period.</p>`; return; }
+    const top = hires[names[0]].length;
+    el.innerHTML = names.map((n, i) => `<button class="lbrow" data-i="${i}"><span class="lbname" title="${esc(n)}">${esc(n)}</span><span class="lbtrack"><span class="lbfill" style="display:block;width:${Math.round(hires[n].length / top * 100)}%"></span></span><span class="lbnum">${hires[n].length}</span></button>`).join("")
+      + (noRecruiter ? `<div class="recnote">${noRecruiter} completed ${noRecruiter === 1 ? "hire has" : "hires have"} no recruiter on record in this period.</div>` : "");
+    el.querySelectorAll(".lbrow").forEach(btn => btn.addEventListener("click", () => {
+      const n = names[parseInt(btn.dataset.i, 10)];
+      const label = recState.days === "all" ? "all time" : `last ${recState.days} days`;
+      showPopover(`${n} · ${hires[n].length} ${hires[n].length === 1 ? "hire" : "hires"} (${label})`, hires[n].sort((a, b) => b.date.localeCompare(a.date)), recPersonItem);
+    }));
+  }
+
+  function renderRecruitment(rec) {
+    const host = document.getElementById("recruitSection");
+    if (!rec || !rec.rows || !rec.rows.length) { host.innerHTML = ""; return; }
+    recRows = rec.rows;
+    const years = Array.from(new Set(recRows.map(r => parseInt(r.date.slice(0, 4), 10)))).sort((a, b) => b - a);
+    if (!years.includes(recState.year)) recState.year = years.includes(new Date().getFullYear()) ? new Date().getFullYear() : years[0];
+    const bs = rec.bySource || {};
+    const unknown = recRows.filter(r => r.status === "unknown").length;
+    const earliest = rec.earliest ? new Date(rec.earliest + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+    host.innerHTML = `
+      <div class="sectionhead"><h2>Recruitment</h2>
+        <p>${recRows.length} people who entered the hiring process since ${earliest}: ${bs.pipeline || 0} from the New Hire Pipeline board, ${bs["hr-tracking"] || 0} from Supreme's HR tracking and ${bs.form || 0} found only on the New Hire Form. Nothing earlier than that exists in monday.com.${unknown ? ` ${unknown} of them have no recorded outcome (counted in the funnel total, never as Completed).` : ""}</p></div>
+      <div class="recgrid">
+        <div class="reccard"><h3>Avg. Time to Fill</h3>
+          <p class="sub">Average days from the New Hire Form registration to the start date, for completed hires. Best available proxy — there is no separate "requisition opened" date.</p>
+          <div id="recTTF"></div></div>
+        <div class="reccard"><h3>Hiring Funnel</h3>
+          <p class="sub">People who entered the process in each period (blue) vs. how many completed onboarding (red). Tap a bar to see who.</p>
+          <div class="segbar">
+            <select class="yearsel" id="recYear">${years.map(y => `<option value="${y}"${y === recState.year ? " selected" : ""}>${y}</option>`).join("")}</select>
+            <div class="seg" id="recMode"><button class="segbtn${recState.mode === "month" ? " active" : ""}" data-mode="month">Monthly</button><button class="segbtn${recState.mode === "quarter" ? " active" : ""}" data-mode="quarter">Quarterly</button></div>
+          </div>
+          <div class="legendrow"><span><i class="sw" style="background:var(--sky)"></i>Total funnel</span><span><i class="sw" style="background:var(--navy)"></i>Completed</span></div>
+          <div id="recFunnel"></div>
+          <div class="recnote" id="recFunnelNote" style="display:none;"></div></div>
+        <div class="reccard"><h3>Recruiter Leaderboard</h3>
+          <p class="sub">Completed hires by recruiter — the recruiter named on the New Hire Form ("Recruited by"). Tap a name to see their hires.</p>
+          <div class="seg" id="recDays" style="margin-bottom:10px;">
+            ${[["30", "30d"], ["90", "90d"], ["365", "1yr"], ["all", "All time"]].map(([d, l]) => `<button class="segbtn${String(recState.days) === d ? " active" : ""}" data-days="${d}">${l}</button>`).join("")}
+          </div>
+          <div id="recLeader"></div></div>
+      </div>`;
+    document.getElementById("recYear").addEventListener("change", (e) => { recState.year = parseInt(e.target.value, 10); renderFunnel(); });
+    document.querySelectorAll("#recMode .segbtn").forEach(b => b.addEventListener("click", () => {
+      recState.mode = b.dataset.mode;
+      document.querySelectorAll("#recMode .segbtn").forEach(x => x.classList.toggle("active", x === b));
+      renderFunnel();
+    }));
+    document.querySelectorAll("#recDays .segbtn").forEach(b => b.addEventListener("click", () => {
+      recState.days = b.dataset.days === "all" ? "all" : parseInt(b.dataset.days, 10);
+      document.querySelectorAll("#recDays .segbtn").forEach(x => x.classList.toggle("active", x === b));
+      renderLeaderboard();
+    }));
+    renderTimeToFill();
+    renderFunnel();
+    renderLeaderboard();
+  }
+
+  // ---------- See Pipeline: stage board + every process (2026-10-21) ----------
+  const STAGE_DEFS = [
+    { key: "received", label: "Request Received", owner: "Recruiter" },
+    { key: "sent", label: "Sent to Supreme", owner: "HomeSí team" },
+    { key: "packet_processing", label: "New Hire Packet Processing", owner: "Supreme Lending" },
+    { key: "supreme_hr", label: "Supreme HR Verification", owner: "Supreme Lending", parallel: true },
+    { key: "equipment", label: "Equipment & Access", owner: "Supreme Lending", parallel: true },
+    { key: "new_hire_welcome", label: "New Hire Welcome", owner: "Supreme Lending" },
+    { key: "activated", label: "HomeSí Activation", owner: "Roster" },
+  ];
+  function allStagesOf(c) { return c.stages.slice(0, 4).concat([c.equipStage], c.stages.slice(4)); }
+
+  // Cards for the working list (mini-timeline, stuck rows, announce) — used by
+  // the See Pipeline screen.
+  function renderCandidateCards(listEl, candidates) {
+    if (!candidates.length) { listEl.innerHTML = `<p class="emptynote">No candidates currently in process.</p>`; return; }
+    listEl.innerHTML = candidates.map(c => {
+      const readyTag = c.readyForOnboarding ? `<span class="readytag">READY</span>` : "";
+      return `<div class="dashcard" data-item="${c.itemId}">
+        <div class="dtop" data-item="${c.itemId}">
+          <div>
+            <p class="dname">${esc(c.name)}${readyTag}</p>
+            <p class="dmeta">${esc(c.role || "—")} · Branch ${esc(c.branch || "—")} · Recruited by ${esc(c.recruiter || "—")}</p>
+            <p class="dstart">Est. start: ${c.estimatedStart || "—"}</p>
+          </div>
+          <span class="chev">›</span>
+        </div>
+        ${renderMiniTimeline(c)}
+        ${renderStuckRows(c)}
+        ${renderAnnounceRow(c)}
+      </div>`;
+    }).join("");
+    listEl.querySelectorAll(".dtop").forEach(el => {
+      el.addEventListener("click", () => navigate({ item: el.dataset.item, from: "pipeline" }, true));
+    });
+    listEl.querySelectorAll(".announcebtn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        announceOnboarding(btn, dashboardData.candidates.find(c => c.itemId === btn.dataset.item));
+      });
+    });
+    listEl.querySelectorAll(".followupbtn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const candidate = dashboardData.candidates.find(c => c.itemId === btn.dataset.item);
+        const stuckStage = candidate.stuckStages.find(s => s.stageKey === btn.dataset.stagekey);
+        requestFollowUp(btn, candidate, stuckStage);
+      });
+    });
+  }
+
+  function renderStageBoard(candidates) {
+    const board = document.getElementById("stageBoard");
+    const rows = STAGE_DEFS.map(def => {
+      const people = candidates.filter(c => {
+        const st = allStagesOf(c).find(s => s.key === def.key);
+        return st && st.state === "current";
+      }).map(c => {
+        const st = allStagesOf(c).find(s => s.key === def.key);
+        const stuck = c.stuckStages.find(x => x.stageKey === def.key);
+        const days = st.days != null && st.ongoing ? st.days : (stuck ? stuck.daysInStage : null);
+        return { c, stuck: !!stuck, days };
+      }).sort((a, b) => (b.days || 0) - (a.days || 0));
+      return { def, people };
+    });
+    const max = Math.max(1, ...rows.map(r => r.people.length));
+    board.innerHTML = rows.map(({ def, people }) => {
+      const anyStuck = people.some(p => p.stuck);
+      const cls = anyStuck ? "hasstuck" : people.length ? "has" : "";
+      const chips = people.length
+        ? `<div class="stagewho">${people.map(p => `<button class="pchip${p.stuck ? " stuck" : ""}" data-item="${p.c.itemId}" title="${esc(p.c.role || "")} · Branch ${esc(p.c.branch || "—")}">${p.stuck ? "⚠ " : ""}${esc(p.c.name)}${p.days != null ? `<span class="pd">${p.days < 1 ? "&lt;1d" : p.days + "d"}</span>` : ""}</button>`).join("")}</div>`
+        : `<div class="stagenone">Nobody here right now</div>`;
+      return `<div class="stagerow ${cls}">
+        <div class="stagehead"><div><h3>${def.label}${def.parallel ? `<span class="stagepar">parallel</span>` : ""}</h3><div class="sowner">${def.owner}</div></div><div class="stagecount">${people.length}</div></div>
+        <div class="stagebar"><i style="width:${Math.round(people.length / max * 100)}%"></i></div>
+        ${chips}
+      </div>`;
+    }).join("");
+    board.querySelectorAll(".pchip").forEach(b => b.addEventListener("click", () => navigate({ item: b.dataset.item, from: "pipeline" }, true)));
+  }
+
+  let pipeRecruiter = "";
+  function renderPipelineView() {
+    const data = dashboardData;
+    const all = data.candidates;
+    const sel = document.getElementById("pipeRecruiter");
+    const names = Array.from(new Set(all.map(c => c.recruiter).filter(Boolean))).sort((a, b) => a.localeCompare(b, "es"));
+    if (pipeRecruiter && !names.includes(pipeRecruiter)) pipeRecruiter = "";
+    sel.innerHTML = `<option value="">All recruiters</option>` + names.map(n => `<option value="${esc(n)}"${n === pipeRecruiter ? " selected" : ""}>${esc(n)}</option>`).join("");
+    sel.onchange = () => { pipeRecruiter = sel.value; renderPipelineView(); };
+    const list = pipeRecruiter ? all.filter(c => c.recruiter === pipeRecruiter) : all;
+    const ready = list.filter(c => c.readyForOnboarding).length;
+    const stuck = list.filter(c => c.stuckStages.length).length;
+    document.getElementById("pipeSummary").textContent = `${list.length} ${list.length === 1 ? "process" : "processes"} in the pipeline`;
+    document.getElementById("pipeMeta").textContent = `${list.length - ready} in process · ${ready} ready for onboarding · ${stuck} with a stage that looks stuck`;
+    renderStageBoard(list);
+    renderCandidateCards(document.getElementById("pipeList"), list);
+  }
+
+  async function loadPipelineView(silent) {
+    els.pageTitle.textContent = "New Hire Pipeline — See Pipeline";
+    els.pageSub.textContent = "Every process, stage by stage — who is where right now.";
+    els.backLink.style.display = "none";
+    setNavTabs("pipeline");
+    if (!silent) showLoading();
+    try {
+      const res = await fetch("/.netlify/functions/dashboard");
+      const data = await res.json();
+      if (res.status === 401 && data.needsAdmin) { lockAdmin(); refreshAdminBtn(); navigate({ view: "recruiter" }, false); return; }
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+      dashboardData = data;
+      showWarnings(data.warnings);
+      renderPipelineView();
+      showOnly(els.pipeline);
+    } catch (err) {
+      showError("Could not load the pipeline: " + err.message);
+    }
+  }
+
+  // ---------- Screen 1: recruiter picker ----------
+  let allRecruiters = [];
+  async function loadPicker() {
+    els.pageTitle.textContent = "My New Hire Process";
+    els.pageSub.textContent = "Pick your name to catch up with every hire you recruited.";
+    els.backLink.style.display = "none";
+    setNavTabs("recruiter");
+    showLoading();
+    try {
+      const res = await fetch("/.netlify/functions/recruiters");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+      allRecruiters = data.recruiters || [];
+      renderRecruiterList(allRecruiters);
+      showOnly(els.picker);
+      document.getElementById("recruiterSearch").focus();
+    } catch (err) {
+      showError("Could not load recruiter list: " + err.message);
+    }
+  }
+
+  function renderRecruiterList(names) {
+    const listEl = document.getElementById("recruiterList");
+    const emptyEl = document.getElementById("recruiterEmpty");
+    if (!names.length) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+    emptyEl.style.display = "none";
+    listEl.innerHTML = names.map(n =>
+      `<li><button data-name="${n.replace(/"/g, '&quot;')}">${n}</button></li>`
+    ).join("");
+    listEl.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => navigate({ recruiter: btn.dataset.name }, true));
+    });
+  }
+
+  document.getElementById("recruiterSearch").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const filtered = q ? allRecruiters.filter(n => n.toLowerCase().includes(q)) : allRecruiters;
+    renderRecruiterList(filtered);
+  });
+
+  // ---------- Screen 2: pipeline list ----------
+  async function loadList(recruiter) {
+    els.pageTitle.textContent = "My New Hire Process";
+    els.pageSub.textContent = "Where each of your hires stands right now, pulled live from monday.com.";
+    els.backLink.textContent = "← Not you? Switch recruiter";
+    els.backLink.style.display = "inline-flex";
+    els.backLink.onclick = () => navigate({ view: "recruiter" }, true);
+    setNavTabs(null);
+    showLoading();
+    try {
+      const res = await fetch(`/.netlify/functions/pipeline?recruiter=${encodeURIComponent(recruiter)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+
+      document.getElementById("listRecruiterName").textContent = data.recruiter;
+      const earlier = data.earlier || [];
+      const totalPeople = data.candidates.length + earlier.length;
+      document.getElementById("listCount").textContent =
+        totalPeople === 1 ? "1 candidate" : `${totalPeople} candidates`;
+
+      const listEl = document.getElementById("candList");
+      // Hires from before the pipeline board existed (same history the Dashboard's
+      // Recruiter Leaderboard counts) — no timeline exists for them, so plain cards.
+      const earlierHtml = earlier.length
+        ? `<p class="emptynote" style="margin:14px 2px 2px;"><b>Before the pipeline board</b> — hires counted in the Recruiter Leaderboard that have no timeline here.</p>` +
+          earlier.map(r => {
+            const when = new Date(r.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+            const st = r.status === "done" ? "✅ Completed" : r.status === "canc" ? "❌ Cancelled" : r.status === "open" ? "In progress" : "Outcome not on record";
+            return `<div class="candcard" style="cursor:default;"><div><p class="cname">${esc(r.name)}${r.role ? `<span class="roletag">${esc(r.role)}</span>` : ""}</p><p class="cmeta">${r.branch ? "Branch " + esc(r.branch) + " · " : ""}${st} · start ${when}</p></div></div>`;
+          }).join("")
+        : "";
+      if (!data.candidates.length && !earlier.length) {
+        listEl.innerHTML = `<p class="emptynote">No candidates found for this recruiter yet.</p>`;
+      } else {
+        listEl.innerHTML = data.candidates.map(c => {
+          const statusText = c.cancelled ? "❌ Cancelled" : (c.estadoGeneral || c.currentStageLabel || c.group);
+          const roleHtml = c.role ? `<span class="roletag">${c.role}</span>` : "";
+          return `<button class="candcard" data-item="${c.itemId}">
+            <div>
+              <p class="cname">${c.name}${roleHtml}</p>
+              <p class="cmeta">${c.branch ? "Branch " + c.branch + " · " : ""}${statusText}</p>
+            </div>
+            <span class="chev">›</span>
+          </button>`;
+        }).join("");
+        listEl.querySelectorAll(".candcard[data-item]").forEach(btn => {
+          btn.addEventListener("click", () => navigate({ recruiter, item: btn.dataset.item }, true));
+        });
+      }
+      if (earlierHtml) listEl.insertAdjacentHTML("beforeend", earlierHtml);
+      showOnly(els.list);
+    } catch (err) {
+      showError("Could not load pipeline: " + err.message);
+    }
+  }
+
+  // ---------- Screen 3: candidate detail ----------
+  // How many days a stage took, appended after its date — only shown when
+  // the API actually computed one (real dates on both ends), e.g. "· 3 days".
+  function daysSuffix(s) {
+    if (!s || s.days == null) return "";
+    if (s.ongoing) return s.days < 1 ? " · < 1 day so far" : ` · ${s.days} ${s.days === 1 ? "day" : "days"} so far`;
+    if (s.days < 1) return " · < 1 day";
+    return ` · ${s.days} ${s.days === 1 ? "day" : "days"}`;
+  }
+
+  // Summarizes the Equipment & Access side-track into one state so it gets
+  // the same done/current/upcoming treatment (green pulse, grey-out) as the
+  // main path steps. Per Ricardo (2026-10-01): judged SOLELY on Supreme
+  // Systems Access — "Done"/"Not applicable" means Supreme has already sent
+  // the new hire their credentials/access email. Equipment-shipped and
+  // HomeSí-systems-access no longer factor into this (mirrors the server-
+  // side equipmentState() in _lib/monday.js — kept in sync manually).
+  function equipmentState(eq) {
+    if (!eq) return "upcoming";
+    const norm = (s) => (s || "").toLowerCase();
+    const isDoneOrNA = (s) => norm(s) === "done" || norm(s) === "not applicable";
+    // Mirrors the server (2026-10-14, Julio Alayo): credentials sent is not
+    // enough — the PC must also be received (or not applicable).
+    const equipmentResolved = !!eq.noPc || ["sent - received all", "not applicable"].includes(norm(eq.equipmentStatus));
+    if (isDoneOrNA(eq.supremeOnboarding) && equipmentResolved) return "done";
+    const started = (s) => s && norm(s) !== "not started" && norm(s) !== "not applicable";
+    // Mirrors the server-side fix (2026-10-02): equipment already shipped/
+    // received reads as "in progress" even while Access still shows "Not
+    // Started" — Access is correctly waiting on HR verification, not sitting
+    // untouched.
+    const shippedStatuses = ["sent - received all", "sent - incomplete", "shipping approved", "preparing to ship", "in transit", "sent - delayed"];
+    const equipmentShipped = shippedStatuses.includes(norm(eq.equipmentStatus)) || !!(eq.trackingNumber);
+    return (started(eq.supremeOnboarding) || equipmentShipped) ? "current" : "upcoming";
+  }
+
+  function equipmentChecklistHtml(eq) {
+    // No PC requested on the New Hire Form (the branch already has one, so
+    // Supreme ships nothing): only Supreme Systems Access is tracked and the
+    // two equipment sub-steps read Not applicable (2026-10-21, per Ricardo).
+    if (eq && eq.noPc) {
+      return renderChecklistRow("Equipment Shipped", "Not applicable") +
+        renderChecklistRow("Tracking Number", "Not applicable") +
+        renderChecklistRow("Supreme Systems Access", eq.supremeOnboarding) +
+        `<p class="note" style="margin:8px 0 2px;">No equipment was requested on the New Hire Form — the branch already provides the PC — so only Supreme Systems Access is tracked.</p>`;
+    }
+    return renderChecklistRow("Equipment Shipped", eq && eq.equipmentStatus) +
+      renderChecklistRow("Tracking Number", eq && eq.trackingNumber, {
+        dateMode: true, emptyText: "Not available yet", href: eq && eq.trackingUrl,
+      }) +
+      renderChecklistRow("Supreme Systems Access", eq && eq.supremeOnboarding);
+  }
+
+  function renderVerticalTimeline(data) {
+    const stage = {};
+    data.stages.forEach(s => stage[s.key] = s);
+    const st = {};
+    data.stages.forEach(s => st[s.key] = s.state);
+    // Same "stuck" convention as the dashboard's mini-timeline: a flagged
+    // stage's node/class reads "stuck" instead of its usual "current".
+    const stuckStages = data.stuckStages || [];
+    const stuckByKey = {};
+    stuckStages.forEach(s => stuckByKey[s.stageKey] = true);
+    if (stuckByKey.sent) st.sent = "stuck";
+    if (stuckByKey.packet_processing) st.packet_processing = "stuck";
+    if (stuckByKey.supreme_hr) st.supreme_hr = "stuck";
+    if (stuckByKey.new_hire_welcome) st.new_hire_welcome = "stuck";
+    const cl = data.supremeChecklist;
+    const eq = data.equipmentChecklist;
+    const eqStageObj = data.equipStage || { state: equipmentState(eq) };
+    const eqState = stuckByKey.equipment ? "stuck" : eqStageObj.state;
+    // Prefer the real date monday recorded for a stage; fall back to a plain
+    // state word only when no date-tracking column exists for that stage yet.
+    const whenFor = (s, stuck) => {
+      if (!s) return "";
+      if (s.date) return s.date + daysSuffix(s);
+      if (stuck) return "⚠ stuck" + daysSuffix(s);
+      if (s.state === "done") return "done" + daysSuffix(s);
+      if (s.state === "current") return "in progress" + daysSuffix(s);
+      return "upcoming";
+    };
+
+    const steps = [];
+    steps.push(`
+      <div class="step ${st.received}">
+        <div class="rail"><div class="node">${STAGE_ICONS[st.received]}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>Request Received</h3><span class="when">${whenFor(stage.received)}</span></div>
+          <p class="desc">The recruiter completed the New Hire Form with the candidate's details.</p>
+          <span class="owner">👤 Recruiter</span>
+        </div>
+      </div>`);
+    steps.push(`
+      <div class="step ${st.sent}">
+        <div class="rail"><div class="node">${STAGE_ICONS[st.sent]}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>Request Sent to Supreme Lending</h3><span class="when">${whenFor(stage.sent, stuckByKey.sent)}</span></div>
+          <p class="desc">The HomeSí team reviewed the information and formally submitted the New Hire Request to Supreme.</p>
+          <span class="owner">👤 HomeSí Team</span>
+          ${renderStuckBlock(stuckStages, "sent")}
+        </div>
+      </div>`);
+    steps.push(`
+      <div class="step ${st.packet_processing}">
+        <div class="rail"><div class="node">${STAGE_ICONS[st.packet_processing]}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>New Hire Packet Processing</h3><span class="when">${whenFor(stage.packet_processing, stuckByKey.packet_processing)}</span></div>
+          <p class="desc">Supreme sends the New Hire Packet and waits for it to come back signed.</p>
+          <span class="owner supreme">🏛️ Supreme Lending</span>
+          ${renderStuckBlock(stuckStages, "packet_processing")}
+          <details class="subscans">
+            <summary>View Details <span class="subcount">· 2 sub-steps</span></summary>
+            <div class="scanlist">
+              ${renderChecklistRow("Packet Sent", cl.packetSent, { dateMode: true, emptyText: "Not sent yet" })}
+              ${renderChecklistRow("Packet Received / Signed", cl.packetReceived, { dateMode: true, emptyText: "Not received yet" })}
+            </div>
+          </details>
+        </div>
+      </div>`);
+    steps.push(`
+      <div class="step ${st.supreme_hr}">
+        <div class="rail"><div class="node">${STAGE_ICONS[st.supreme_hr]}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>Under Supreme HR Verification</h3><span class="when dur">${whenFor(stage.supreme_hr, stuckByKey.supreme_hr)}</span></div>
+          <p class="desc">Supreme opened the file and assigned an HR Rep. This is the legal compliance stage — no one at HomeSí can speed it up or skip it.</p>
+          <span class="owner supreme">🏛️ Supreme Lending</span>
+          ${renderStuckBlock(stuckStages, "supreme_hr")}
+          <details class="subscans">
+            <summary>View Details <span class="subcount">· 3 sub-steps</span></summary>
+            <div class="scanlist">
+              ${renderChecklistRow("Background Check", cl.backgroundCheck, { note: "Needs candidate consent" })}
+              ${renderChecklistRow("NMLS Access", cl.nmlsAccess, { note: "Needs candidate to grant access" })}
+              ${renderChecklistRow("I-9 Documents", cl.i9Documents, { note: "Needs documents from candidate" })}
+            </div>
+          </details>
+        </div>
+      </div>`);
+    steps.push(`<div class="parallel-note">↳ <b>Meanwhile, in parallel</b> — doesn't block Supreme's close-out:</div>`);
+    steps.push(`
+      <div class="step ${eqState}">
+        <div class="rail"><div class="node">${eqState === "done" ? "✔" : eqState === "stuck" ? "⚠" : "📦"}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>Equipment &amp; Access</h3><span class="when dur">${eqState === "done" ? (eqStageObj.date ? eqStageObj.date : "done") + daysSuffix(eqStageObj) : eqState === "stuck" ? "⚠ stuck" + daysSuffix(eqStageObj) : eqState === "current" ? "in progress" + daysSuffix(eqStageObj) : "not started"}</span></div>
+          <p class="desc">${eq && eq.noPc ? "No equipment requested — the branch already has a PC. Only Supreme Systems Access is tracked." : "Shipping equipment and enabling system credentials/access for the new hire."}</p>
+          <span class="owner supreme">🏛️ Supreme Lending</span>
+          ${renderStuckBlock(stuckStages, "equipment")}
+          <details class="subscans">
+            <summary>View Details <span class="subcount">· 3 sub-steps</span></summary>
+            <div class="scanlist">
+              ${equipmentChecklistHtml(eq)}
+            </div>
+          </details>
+        </div>
+      </div>`);
+    steps.push(`
+      <div class="step ${st.new_hire_welcome}">
+        <div class="rail"><div class="node">${STAGE_ICONS[st.new_hire_welcome]}</div><div class="line"></div></div>
+        <div class="content">
+          <div class="top"><h3>New Hire Welcome</h3><span class="when dur">${whenFor(stage.new_hire_welcome, stuckByKey.new_hire_welcome)}</span></div>
+          <p class="desc">Supreme sends the welcome email and formally closes out the HR file.</p>
+          <span class="owner supreme">🏛️ Supreme Lending</span>
+          ${renderStuckBlock(stuckStages, "new_hire_welcome")}
+          <details class="subscans">
+            <summary>View Details <span class="subcount">· 2 sub-steps</span></summary>
+            <div class="scanlist">
+              ${renderChecklistRow("Welcome Email Sent", cl.welcomeEmailStatus)}
+              ${renderChecklistRow('Formal HR Close-out ("Complete")', cl.formalCloseOut)}
+            </div>
+          </details>
+        </div>
+      </div>`);
+    steps.push(`
+      <div class="step ${st.activated}">
+        <div class="rail"><div class="node">${st.activated === "done" ? "✔" : "🏠"}</div></div>
+        <div class="content">
+          <div class="top"><h3>HomeSí Activation</h3><span class="when dur">${whenFor(stage.activated)}</span></div>
+          <p class="desc">The person joins the division's official roster — now an active team member.</p>
+          <span class="owner system">⚙️ Roster activation: automatic once Supreme HR is confirmed</span>
+        </div>
+      </div>`);
+
+    document.getElementById("verticalTimeline").innerHTML = steps.join("");
+    document.getElementById("deliveredBanner").style.display = st.activated === "done" ? "block" : "none";
+  }
+
+  function switchView(view) {
+    const h = document.getElementById("viewHorizontal");
+    const v = document.getElementById("viewVertical");
+    const bh = document.getElementById("btnHorizontal");
+    const bv = document.getElementById("btnVertical");
+    if (view === "vertical") {
+      h.style.display = "none"; v.style.display = "block";
+      bh.classList.remove("active"); bv.classList.add("active");
+    } else {
+      h.style.display = "block"; v.style.display = "none";
+      bv.classList.remove("active"); bh.classList.add("active");
+    }
+  }
+  document.getElementById("btnHorizontal").addEventListener("click", () => switchView("horizontal"));
+  document.getElementById("btnVertical").addEventListener("click", () => switchView("vertical"));
+
+  async function loadDetail(recruiter, itemId, from) {
+    els.pageTitle.textContent = "Where is your hiring process?";
+    els.pageSub.textContent = "This is how the request travels from the form to the first active day at HomeSí.";
+    els.backLink.textContent = recruiter ? "← Back to My New Hire Process" : from === "pipeline" ? "← Back to See Pipeline" : "← Back to Dashboard";
+    els.backLink.style.display = "inline-flex";
+    els.backLink.onclick = () => navigate(recruiter ? { recruiter } : from === "pipeline" ? { view: "pipeline" } : {}, true);
+    setNavTabs(null);
+    showLoading();
+    try {
+      const res = await fetch(`/.netlify/functions/status?item=${encodeURIComponent(itemId)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unknown error");
+
+      document.getElementById("itemId").textContent = data.itemId;
+      document.getElementById("name").textContent = data.name;
+      // Supreme re-spells candidate names as it finds variations in public
+      // records (a second name, a nickname, a corrected spelling). The tracker
+      // follows the candidate by monday item ID, so nothing breaks — but show
+      // how Supreme currently lists them when it differs, so a recruiter
+      // searching Supreme's side knows what to look for.
+      const akaEl = document.getElementById("supremeAka");
+      const plainName = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/["'.,-]/g, " ").replace(/\s+/g, " ").trim();
+      if (data.supremeName && plainName(data.supremeName) !== plainName(data.name)) {
+        akaEl.textContent = `Listed at Supreme as: ${data.supremeName}`;
+        akaEl.style.display = "block";
+      } else {
+        akaEl.style.display = "none";
+      }
+      const roleBadge = document.getElementById("roleBadge");
+      if (data.role) { roleBadge.textContent = data.role; roleBadge.style.display = "inline-block"; }
+      else { roleBadge.style.display = "none"; }
+      document.getElementById("branch").textContent = data.branch ? `Branch ${data.branch}` : "Branch —";
+      document.getElementById("recruiter").textContent = data.recruiter || "—";
+      document.getElementById("headline").textContent = data.cancelled ? "❌ Cancelled" : (data.estadoGeneral || data.group);
+
+      // Est. start date always shows. Roster-join date + the plan-vs-actual
+      // gap only apply once the process is actually complete (there's no
+      // "actual" date to compare yet while still in progress).
+      let datesLine = `Est. start: ${data.estimatedStart || "—"}`;
+      if (data.activated) {
+        datesLine += ` · Joined roster: ${data.rosterJoinDate || "—"}`;
+        if (data.gapDays != null) {
+          const gapText = data.gapDays === 0
+            ? "on time"
+            : data.gapDays > 0
+              ? `${data.gapDays} ${data.gapDays === 1 ? "day" : "days"} later than estimated`
+              : `${Math.abs(data.gapDays)} ${Math.abs(data.gapDays) === 1 ? "day" : "days"} earlier than estimated`;
+          datesLine += ` · Gap: ${gapText}`;
+        }
+      }
+      document.getElementById("headerDates").textContent = datesLine;
+
+      const headerLongest = document.getElementById("headerLongest");
+      if (data.activated && data.longestStage) {
+        const d = data.longestStage.days;
+        headerLongest.textContent = `⏱ Longest stage: ${data.longestStage.label} (${d} ${d === 1 ? "day" : "days"})`;
+        headerLongest.style.display = "block";
+      } else {
+        headerLongest.style.display = "none";
+      }
+
+      // Equipment & Access runs in parallel with (not blocking) Supreme's
+      // HR verification, so its node sits right after that one — same spot
+      // it occupies as a side-branch in the vertical timeline.
+      // Same state + duration the dashboard uses (server-side, knows about "no PC").
+      const eqStage = Object.assign({ key: "equipment", label: "Equipment & Access", date: null }, data.equipStage || { state: equipmentState(data.equipmentChecklist) });
+      data.equipStage = eqStage; // so requestFollowUp() below can build the same combined timeline the dashboard sends
+      const stepperStages = data.stages.slice(0, 4).concat([eqStage], data.stages.slice(4));
+
+      const stepperRow = document.getElementById("stepperRow");
+      stepperRow.innerHTML = stepperStages.map(s => {
+        const dateLine = s.date ? `<div class="hdate">${s.date}${daysSuffix(s)}</div>` : (s.days != null ? `<div class="hdate">${daysSuffix(s).replace(" · ", "")}</div>` : "");
+        return `<div class="hnode ${s.state}"><div class="hcircle">${STAGE_ICONS[s.state]}</div><div class="hlabel">${s.label.replace(" ", "<br>")}</div>${dateLine}</div>`;
+      }).join("");
+
+      const cl = data.supremeChecklist;
+      document.getElementById("checklist").innerHTML =
+        renderChecklistRow("Packet Sent", cl.packetSent, { dateMode: true, emptyText: "Not sent yet" }) +
+        renderChecklistRow("Packet Received / Signed", cl.packetReceived, { dateMode: true, emptyText: "Not received yet" }) +
+        renderChecklistRow("Background Check", cl.backgroundCheck, { note: "Needs candidate consent" }) +
+        renderChecklistRow("NMLS Access", cl.nmlsAccess, { note: "Needs candidate to grant access" }) +
+        renderChecklistRow("I-9 Documents", cl.i9Documents, { note: "Needs documents from candidate" }) +
+        renderChecklistRow("Welcome Email Sent", cl.welcomeEmailStatus) +
+        renderChecklistRow('Formal HR Close-out ("Complete")', cl.formalCloseOut);
+
+      document.getElementById("equipmentChecklist").innerHTML = equipmentChecklistHtml(data.equipmentChecklist);
+
+      renderVerticalTimeline(data);
+      switchView("horizontal");
+
+      document.getElementById("verticalTimeline").querySelectorAll(".followupbtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const stuckStage = (data.stuckStages || []).find(s => s.stageKey === btn.dataset.stagekey);
+          if (!stuckStage) return;
+          requestFollowUp(btn, data, stuckStage, () => loadDetail(recruiter, itemId, from));
+        });
+      });
+
+      showOnly(els.detail);
+    } catch (err) {
+      showError("Could not load live status: " + err.message);
+    }
+  }
+
+  // ---------- Router ----------
+  // Home is now the PMO Dashboard (?view=recruiter opts into the old
+  // recruiter-picker flow). A candidate item id alone — e.g. a link from a
+  // follow-up email — routes straight to their detail screen even without a
+  // recruiter name in the URL.
+  function route() {
+    const params = new URLSearchParams(window.location.search);
+    const recruiter = params.get("recruiter");
+    const item = params.get("item");
+    const view = params.get("view");
+    const from = params.get("from");
+    if (item) loadDetail(recruiter || null, item, from);
+    else if (recruiter) loadList(recruiter);
+    else if (view === "recruiter" || !isAdminUser()) {
+      if (view !== "recruiter") window.history.replaceState({}, "", window.location.pathname + "?view=recruiter");
+      loadPicker();
+    }
+    else if (view === "pipeline") loadPipelineView();
+    else loadDashboard();
+  }
+  window.addEventListener("popstate", route);
+  refreshAdminBtn();
+  route();
+</script>
+</body>
+</html>
