@@ -60,6 +60,10 @@ function safeStore(real) {
 function openStore(name) {
   try {
     if (lambdaConnected) return safeStore(getStore(name));
+    // Modern (non-Lambda) functions such as the scheduled sync.mjs get Blobs
+    // credentials automatically; only fall back to the manual token if that
+    // isn't available.
+    try { return safeStore(getStore(name)); } catch (e) { /* not auto-configured — try the token below */ }
     const token = process.env.NETLIFY_BLOBS_TOKEN;
     if (token) {
       const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || FALLBACK_SITE_ID;
