@@ -9,6 +9,9 @@
 //
 // Schedule: every hour, on the hour (UTC). Scheduled functions only run on the
 // published production deploy; use "Run now" in Netlify → Functions to test.
+// Static import so the bundler ships @netlify/blobs inside this function's
+// package (the CommonJS helpers require() it at runtime).
+import "@netlify/blobs";
 import dashboard from "./dashboard.js";
 
 export default async () => {
