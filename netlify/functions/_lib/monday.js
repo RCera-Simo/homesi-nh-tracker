@@ -207,6 +207,52 @@ function withinOneEdit(a, b) {
   return la > lb ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1); // insertion/deletion
 }
 
+// Optimal-string-alignment distance (insert / delete / substitute / adjacent
+// swap each cost 1). Only used on single name words, so the O(n*m) table is
+// tiny.
+function osaDistance(a, b) {
+  const la = a.length, lb = b.length;
+  if (!la) return lb;
+  if (!lb) return la;
+  const d = [];
+  for (let i = 0; i <= la; i++) { d.push(new Array(lb + 1).fill(0)); d[i][0] = i; }
+  for (let j = 0; j <= lb; j++) d[0][j] = j;
+  for (let i = 1; i <= la; i++) {
+    for (let j = 1; j <= lb; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[la][lb];
+}
+
+function sortedLetters(w) { return w.split("").sort().join(""); }
+
+// "Close enough to be the same WORD" (2026-11-18, per Ricardo: a misspelling
+// must never again stop an automatic update — "Michael Watcher" on the form
+// vs "Michael Wachter" at Supreme is 2 plain edits, so the old 1-edit rule
+// missed it). A pair of words counts as the same when ANY of these hold:
+//   - identical;
+//   - 6+ letters and one edit apart (typo, dropped/added letter, swapped pair);
+//   - 5+ letters and the SAME LETTERS in a different order (a scrambled
+//     spelling: Watcher/Wachter, Arteaga/Aretaga) — two different surnames
+//     that are exact anagrams of each other are vanishingly rare;
+//   - 9+ letters, same first letter and two edits apart (long compound
+//     surnames carry 2 typos far more often than they collide).
+// Short words (<5 letters) must match exactly: "Lee"/"Lea"-type pairs are
+// different people far more often than typos.
+function tokensClose(a, b) {
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (la >= 6 && lb >= 6 && withinOneEdit(a, b)) return true;
+  if (la >= 5 && lb >= 5 && la === lb && sortedLetters(a) === sortedLetters(b) && a[0] === b[0]) return true;
+  if (la >= 9 && lb >= 9 && a[0] === b[0] && Math.abs(la - lb) <= 2 && osaDistance(a, b) <= 2) return true;
+  return false;
+}
+
 // SPELLING-variant fallback for when neither the exact key nor the in-order
 // token-subset match finds anything (2026-10-05, per Ricardo: Supreme keeps
 // re-spelling names as they find variations in public records — e.g. HomeSí
@@ -228,7 +274,7 @@ function isNameSimilarMatch(tokensA, tokensB) {
   for (let k = 1; k < longer.length && j < shorter.length; k++) {
     const tok = longer[k];
     const want = shorter[j];
-    if (tok === want || (tok.length >= 6 && want.length >= 6 && withinOneEdit(tok, want))) j++;
+    if (tokensClose(tok, want)) j++;
   }
   return j === shorter.length;
 }
@@ -247,11 +293,45 @@ function isNameTokenSetMatch(tokensA, tokensB) {
   const pool = longer.slice(1);
   for (let i = 1; i < shorter.length; i++) {
     const want = shorter[i];
-    const at = pool.findIndex((tok) => tok === want || (tok.length >= 6 && want.length >= 6 && withinOneEdit(tok, want)));
+    const at = pool.findIndex((tok) => tokensClose(tok, want));
     if (at < 0) return false;
     pool.splice(at, 1);
   }
   return true;
+}
+
+// FIRST-NAME variant (2026-11-18): the first name carries the typo
+// ("Micheal"/"Michael", "Geovanni"/"Jeovanni") while every other word matches
+// exactly. Same token count on both sides, first names must be 6+ letters
+// and "close" (see tokensClose) — still unique-match-only at the callers.
+function isNameFirstVariantMatch(tokensA, tokensB) {
+  if (tokensA.length !== tokensB.length || tokensA.length < 2) return false;
+  if (tokensA[0] === tokensB[0]) return false; // exact first names are handled by the earlier tiers
+  if (tokensA[0].length < 6 || tokensB[0].length < 6) return false;
+  if (!tokensClose(tokensA[0], tokensB[0])) return false;
+  for (let i = 1; i < tokensA.length; i++) if (tokensA[i] !== tokensB[i]) return false;
+  return true;
+}
+
+// NICKNAME variant (2026-11-18): "Gabby Lozano" on the form vs "Gabriela
+// Lozano Rendon" at Supreme. The first names differ but start with the same 3
+// letters (Gabby/Gabriela, Alex/Alexander, Dan/Daniel, Vicky/Victoria) and ALL
+// the remaining words of the shorter name appear, in order, in the longer
+// one. Strict on purpose: 3+ letters shared, 2+ tokens on the shorter side,
+// the surname words must be exact (or "close"), and callers only accept it
+// when it resolves to ONE person.
+function isNameNicknameMatch(tokensA, tokensB) {
+  const [shorter, longer] = tokensA.length <= tokensB.length ? [tokensA, tokensB] : [tokensB, tokensA];
+  if (shorter.length < 2) return false;
+  const fa = shorter[0], fb = longer[0];
+  if (fa === fb || fa.length < 3 || fb.length < 3) return false;
+  if (fa.slice(0, 3) !== fb.slice(0, 3)) return false;
+  if (Math.abs(fa.length - fb.length) < 3) return false; // Maria/Mario, Marco/Marcos: different people, not nicknames
+  let j = 1;
+  for (let k = 1; k < longer.length && j < shorter.length; k++) {
+    if (tokensClose(longer[k], shorter[j])) j++;
+  }
+  return j === shorter.length;
 }
 
 // Adds one record to a board index's name maps. `byNameAll` keeps EVERY record
@@ -324,6 +404,46 @@ async function fetchSupremeHrBoardIndex() {
   return index;
 }
 
+// How much real HR data a Supreme-style record carries (packet dates,
+// background / NMLS / I-9 statuses, complete flag). "N/A" is the board's
+// default, not data. Used to tell a live record from a blank duplicate.
+function recordDataScore(r) {
+  if (!r) return 0;
+  return [r.packetSent, r.packetReceived, r.welcomeEmail, r.backgroundCheck, r.nmlsAccess, r.i9Documents, r.complete]
+    .filter((v) => v && String(v).trim() && String(v).trim().toUpperCase() !== "N/A").length;
+}
+
+// Several records share ONE person's name key. Pick the right one:
+//   - same cancelled-state as the candidate first;
+//   - then (2026-11-18) skip a BLANK duplicate when another record of the same
+//     person already carries live (not-yet-complete) HR data — Supreme created
+//     a second, empty "Michael Wachter" a week after the real one, and the old
+//     "newest wins" rule linked the candidate to the empty copy, so his NHP
+//     date never showed up;
+//   - otherwise the newest for an active candidate, the oldest for a
+//     cancelled one (re-hires: Angel Espinoza).
+function chooseAmongDuplicates(records, wantCancelled) {
+  const ts = (r) => { const t = r.createdAt ? new Date(r.createdAt).getTime() : 0; return isNaN(t) ? 0 : t; };
+  const sameState = records.filter((r) => !!r.cancelledTag === !!wantCancelled);
+  const pool = sameState.length ? sameState : records;
+  if (pool.length === 1) return pool[0];
+  const sorted = pool.slice().sort((a, b) => ts(a) - ts(b));
+  if (wantCancelled) return sorted[0];
+  const live = sorted.filter((r) => recordDataScore(r) > 0 && String(r.complete || "").toLowerCase() !== "yes");
+  if (live.length) return live[live.length - 1];
+  return sorted[sorted.length - 1];
+}
+
+// One or more fuzzy-tier hits -> a record, but only when they are all the same
+// PERSON (identical normalized name, i.e. duplicates of one candidate). Hits
+// on different people stay ambiguous and resolve to nothing.
+function uniquePersonRecord(entries, wantCancelled) {
+  if (!entries.length) return null;
+  const keys = new Set(entries.map((e) => e.key));
+  if (keys.size !== 1) return null;
+  return chooseAmongDuplicates(entries.map((e) => e.record), wantCancelled);
+}
+
 // Resolves one HomeSí candidate against any board index (Supreme HR,
 // Onboarding Pipeline, New Hire Form), strongest signal first:
 //
@@ -376,9 +496,7 @@ function resolveRecord(index, { name, linkedId, rememberedId, isCancelled, claim
     // candidate and the oldest for a cancelled one.
     if (matching.length) {
       if (matching.length === 1) return matching[0];
-      const ts = (r) => { const t = r.createdAt ? new Date(r.createdAt).getTime() : 0; return isNaN(t) ? 0 : t; };
-      const sorted = matching.slice().sort((a, b) => ts(a) - ts(b));
-      return wantCancelled ? sorted[0] : sorted[sorted.length - 1];
+      return chooseAmongDuplicates(matching, wantCancelled);
     }
     // Only a record in the OPPOSITE state shares the exact name. For an active
     // candidate whose old, cancelled item keeps the plain name while the live
@@ -398,21 +516,28 @@ function resolveRecord(index, { name, linkedId, rememberedId, isCancelled, claim
 
   if (index.all) {
     const tokensA = key.split(" ").filter(Boolean);
+    const wantC = !!isCancelled;
     const subset = index.all.filter((entry) => isNameSubsetMatch(tokensA, entry.tokens));
-    if (subset.length === 1) return subset[0].record;
-    if (subset.length === 0) {
-      const similar = index.all.filter(
-        (entry) => isNameSimilarMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
-      );
-      if (similar.length === 1) return similar[0].record;
-      if (similar.length === 0) {
-        // 6. Re-ordered / re-spelled surnames (see isNameTokenSetMatch).
-        const reordered = index.all.filter(
-          (entry) => isNameTokenSetMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
-        );
-        if (reordered.length === 1) return reordered[0].record;
-      }
-    }
+    if (subset.length) return uniquePersonRecord(subset, wantC);
+    const similar = index.all.filter(
+      (entry) => isNameSimilarMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
+    );
+    if (similar.length) return uniquePersonRecord(similar, wantC);
+    // 6. Re-ordered / re-spelled surnames (see isNameTokenSetMatch).
+    const reordered = index.all.filter(
+      (entry) => isNameTokenSetMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
+    );
+    if (reordered.length) return uniquePersonRecord(reordered, wantC);
+    // 7. Typo in the FIRST name, everything else identical.
+    const firstVariant = index.all.filter(
+      (entry) => isNameFirstVariantMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
+    );
+    if (firstVariant.length) return uniquePersonRecord(firstVariant, wantC);
+    // 8. Nickname vs full first name, surname identical (Gabby / Gabriela Lozano).
+    const nickname = index.all.filter(
+      (entry) => isNameNicknameMatch(tokensA, entry.tokens) && !(claimedKeys && claimedKeys.has(entry.key))
+    );
+    if (nickname.length) return uniquePersonRecord(nickname, wantC);
   }
   return null;
 }
@@ -1720,6 +1845,14 @@ async function assembleDashboard({ links, events } = {}) {
 }
 
 module.exports = {
+  tokensClose,
+  isNameSimilarMatch,
+  isNameTokenSetMatch,
+  isNameFirstVariantMatch,
+  isNameNicknameMatch,
+  nameTokens,
+  chooseAmongDuplicates,
+  recordDataScore,
   PIPELINE_BOARD_ID,
   GROUPS,
   SUPREME_HR_BOARD_ID,
