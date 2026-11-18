@@ -4,8 +4,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  # Ship @netlify/blobs with every function (the scheduled sync.mjs needs it at runtime).
-  external_node_modules = ["@netlify/blobs"]
 
 # Optional: run the polling/notification check on a schedule instead of (or in
 # addition to) the Claude-managed scheduled task described in the README.
